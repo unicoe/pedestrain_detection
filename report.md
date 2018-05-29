@@ -1,4 +1,4 @@
-# Pedestrian detection with Faster-RCNN
+# Pedestrian Detection with Faster-RCNN
 
 ## 0 Overview
 
@@ -6,19 +6,23 @@
 
 
 ## 2  Faster R-CNN Reimplementation and Analysis of Framework and Key Components.
-(*The answer to question 01 is included here: Please describe the 2 key components in the Faster R-CNN framework*)
+(*The answer to question 01 is included here: "Please describe the 2 key components in the Faster R-CNN framework"*)
 
 ## 3 Reimplement Faster RCNN with Pedestrian Detection Dataset.
 
 The offical faster R-CNN python implementation from [@rbgirshick](https://github.com/rbgirshick) works with `Pascal Voc `dataset while this project aims at pedestrian detecting. Thus, to adapt the existed implementation to pedestrian dataset like `Caltech, Kitti and INRIA` is the essential part for implementing. And in this report, how to prepare the caltech dataset will first be introduced. And how to modify the network model will then be explained.  The last topic will be the performance analysis and demonstration of the trained network.
 
+And this part of work is heavily based on [py-faster-rcnn-caltech-pedestrian](https://github.com/govindnh4cl/py-faster-rcnn-caltech-pedestrian).
+
 ### 3.1 Prepare the Dataset: Caltech.
+
 The [Caltech](http://www.vision.caltech.edu/Image_Datasets/CaltechPedestrians/) pedestrain dataset consists of approximately 10 hours of 640x480 30Hz video taken from a vehicle driving through regular traffic in an urban environment. About 250,000 frames (in 137 approximately minute long segments) with a total of 350,000 bounding boxes and 2300 unique pedestrians were annotated. The annotation includes temporal correspondence between bounding boxes and detailed occlusion labels. 
 
 In order to use Caltech dataset for faster R-CNN,  3 essential parts of data need to be obtained/converted from the raw data: Annotations, ImageSets, JPEGImages, which are the label data, text file with images name as lists and images in jpg format respectively. In this project, 8 substeps are implemented to obtain the required data. 
 
 
 #### 3.1.1 Create directory structure.
+
 Before making the dataset, design and create the directories structure to make it easy for coming data parses and extracts operations.
 
 ``` Shell
@@ -32,6 +36,7 @@ mkdir data/ImageSets     # Store image name txt file
 ```
 
 #### 3.1.2 Get the video sequences and annotations.
+
 The dataset can be downloaded from the offical site `https://www.vision.caltech.edu/Image_Datasets/CaltechPedestrians/datasets/USA/setXX.tar` with commands:
 
 ```Shell
@@ -55,6 +60,7 @@ cp -r /DataA/PublicDataSet/LAB2 .
 ```
 
 #### 3.1.3 Extract tars into the directory `unzip`.
+
 Extract(unzip) `setxx.tar` to directories with commands:
 
 ```Shell
@@ -91,6 +97,7 @@ caltech/unzip/set00/V010.seq
 ```
 
 #### 3.1.4 Extract the `annotations.zip` file.
+
 Unzip and extract `caltech/annotations.zip` to `caltech/data/annotations` dirctory; and ten `setxx` directory will be placed in `caltech/data/annotations`.
 
 ```Shell
@@ -114,6 +121,7 @@ caltech/data/annotations/set00/V008.vbb
 ```
 
 #### 3.1.5 Parse and extract images to `caltech/data/JPEGImages`.
+
 Convert and parse images from sequences with tool provided by [caltech-pedestrian-dataset-converter](https://github.com/govindnh4cl/caltech-pedestrian-dataset-converter); Clone the converter to data directory and then modify the code by adding the source and target directories (for my case, ../unzip and JPEGImages respectively) to `config.py`.
 Script:
 
@@ -220,6 +228,7 @@ class Config():
 ```
 
 #### 3.1.6 Create ImageSets.
+
 Image sets are the text files containing the image names for train and test sets. Modify the `config.py` and convert:
 
 * Set `print_names = 1`
@@ -323,6 +332,7 @@ class Config():
 ```
 
 #### 3.1.7 The prepared dataset.
+
 After all previous operations, the dataset has been downloaded and parse to  an applicable format and the directory structure presents as:
 
 ```Shell
@@ -342,6 +352,7 @@ $caltech/data/ImageSets/test_1x.txt
 ```
 
 #### 3.1.8 Create symlinks for the dataset.
+
 Then build softlink to the prepared dataset in the `caltech/data` directory with commands:
 
 ```Shell
@@ -350,18 +361,76 @@ ln -s ../caltech caltech
 ```
 
 ### 3.2 Model Tuning to Fit Caltech Dataset.
-#### 3.2.1 Tune Caffe to Support
 
+Like mentioned before this project is based on the `py-faster-rcnn-caltech-pedestrian` project but with many modifications, both code and structure wise.
 
+#### 3.2.0 Clone Repo, Make Caffe and Download pre-trained ImageNet models with Standard Process.
 
+First clone the project from `https://github.com/govindnh4cl/py-faster-rcnn-caltech-pedestrian` and then build caffe.
+
+```shell
+git clone --recursive https://github.com/govindnh4cl/py-faster-rcnn-caltech-pedestrian.git
+cd py-faster-rcnn-caltech-pedestrian
+git checkout master
+
+cd py-faster-rcnn-caltech-pedestrian/lib
+make
+
+cd py-faster-rcnn-caltech-pedestrian/caffe-fast-rcnn
+cp Makefile.config.example Makefile.config
+make -j128 && make pycaffe
+
+cd ../
+./data/scripts/fetch_faster_rcnn_models.sh
+```
+
+#### 3.2.1 Build Caffe with Support to Python Layer.
+
+If the Caffe is built with the standard process, one issue ([can be refered to offical faster rcnn git issue 31](https://github.com/rbgirshick/fast-rcnn/issues/31))  shows like `Check failed: registry.count(type) == 1 (0 vs. 1) Unknown layer type: Python` will occur and the solution is to modify the Makefile.config file by uncomment `WITH_PYTHON_LAYER := 1` in the Makefile.config and remake caffe.
+
+```shell
+make clear
+make -j128 && make pycaffe
+```
+The Caffe is then remade and supports python layers.
+
+#### 3.2.2 Modify the Network to Fit Caltech Dataset.
+With the unmodified code, the other issue will be when running the code to 10000 iters, the following error message will pop up and terminate the training: 
+
+```shell
+File "./tools/train_net.py", line 112, in <module>
+max_iters=args.max_iters)
+File "/home/deeplearning_3/Aven_caltech/py-faster-rcnn-caltech-pedestrian/tools/../lib/fast_rcnn/train.py", line 160, in train_net model_paths = sw.train_model(max_iters)
+File "/home/deeplearning_3/Aven_caltech/py-faster-rcnn-caltech-pedestrian/tools/../lib/fast_rcnn/train.py", line 111, in train_model model_paths.append(self.snapshot())
+File "/home/deeplearning_3/Aven_caltech/py-faster-rcnn-caltech-pedestrian/tools/../lib/fast_rcnn/train.py", line 73, in snapshot self.bbox_stds[:, np.newaxis])
+ValueError: operands could not be broadcast together with shapes (84,4096) (8,1)
+``` 
+This is also an issue can be found on git issues([issue 37](https://github.com/rbgirshick/fast-rcnn/issues/37)) and the solution is relatively complecated. In short, the main issue is caltech dataset has only two classes comparing with 21 from the original pascal voc dataset, the output layers like `cls_score` and `bbox_pred` have to be modifited to fit the dataset; and for this case, the output params for `cls_score` should be 2 and 8 for `bbox_pred` layer. Another further work is to modify the layer name in prototxt and the croresponding class/function name in python layer definition code(I don't fully get the reason but it turns out to be essential).
+
+Three essential files here need to be modified;
+
+* `models/VGG16/faster_rcnn_end2end/train.prototxt`; Change the output params for `cls_score` and `bbox_pred`  layers.
+* `models/VGG16/faster_rcnn_end2end/train.prototxt`; Change the name for `cls_score` and `bbox_pred`  layers to a new name like `new_cls_score` and `new_bbox_pred` .
+* `lib/train.py`; Change the function name/ parameter name from `cls_score` and `bbox_pred`  to  `new_cls_score` and `new_bbox_pred`.
+
+Everything should be set and the training can be started from here.
 
 ### 3.3 Performance and Evaluation: mAp and demos.
+The log file is attached at the end of this reprot, and some of the essential info is listed here.
 #### 3.3.1 mAP(Mean Average Precision).
-(*The answer to question 02 is provided here:*)
+(*The answer to question 02 is provided here: "Please describe the object detection performance metric, mAP (Mean Average Precision), and explain why it can well reflect the object detection accuracy."*)
 
 #### 3.3.2 Final mAP performance and demo samples.
-(*The answer to question 03 is provided here:*)
+(*The answer to question 03 is provided here: "Please train and test the Fast R-CNN framework on one of the existing pedestrian detection datasets, and report the final mAP performance that you have achieved.  The dataset could be Caltech, INRIA, KITTI . Please also report some pedestrian detection examples by including the images and bounding boxes."*)
+To demonstrate the train model over sample images on the headless server, the output images can not be displayed but saved . And some  modifications have to be done to the `demo.py` code.
+
+Python code attached here:
+
+```python
+
+```
 
 ### 3.4 Implement Faster R-CNN on Kitti Datasets.
 
 ## 4. Advanced Approach and Improvement Based on Faster R-CNN
+(*The answer to question 04 is provided here: "Propose your own method to further improve the pedestrian detection performance based on the Fast R-CNN framework."*)
