@@ -46,7 +46,7 @@ By not repeating the feature extractions, Fast R-CNN significantly cuts down the
 Faster R-CNN is an object detection framework based on deep convolutional networks, which includes a Region Proposal Network (RPN) and an Object Detection Network. Both networks are trained for sharing convolutional layers for fast testing; the offical implementation is in matlab. The main result:
 
 
- |                         | training data                          | test data            | mAP   | time/img|
+|                         | training data                          | test data            | mAP   | time/img|
 |:------------------------- |:--------------------------------------:|:--------------------:|:-----:|:-----:|
 |Faster RCNN, VGG-16       | VOC 2007 trainval + 2012 trainval      | VOC 2007 test        | 73.2% | 198ms|
 |Faster RCNN, VGG-16       | VOC 2007 trainval&test + 2012 trainval | VOC 2012 test        | 70.4% | 198ms|
@@ -63,22 +63,30 @@ The network flow is the same but the region proposal is now replaced by a convol
 ## 2  Faster R-CNN Reimplementation and Analysis of Framework and Key Components.
 (*The answer to question 01 is included here: "Please describe the 2 key components in the Faster R-CNN framework"*)
 
+Based on a historial review on all relative developments, this part will implement the Faster R-CNN end to end training and explain how the key components works for the framework to demonstrate an comprehensive understanding of these techniques.
+
 ### 2.1 Python Implementation of Faster R-CNN.
+
 This part of work serves as the foudation of this project, and thanks to [@rbgirshick](https://github.com/rbgirshick) for the detailed documentation, this is no much difficulty in reimplementing the work but following the [tutorial](https://github.com/rbgirshick/py-faster-rcnn) carefully, and one thing to clarify is the end to end method (not the multi-stage) is taken in all implementations in this project.
+
 And the result running a linux sever with graphic card 1080Ti  is attached here:
 
 ### 2.2 The RoIPooling Layer for Fast and Faster R-CNN.
 
+Since Fast R-CNN uses fully connected layers, the various RoI batchs(feature map) needs to be warpped into in a predefined size shape and feed into fc layers. 
 
-Because Fast R-CNN uses fully connected layers, we apply ROI pooling to warp the variable size ROIs into in a predefined size shape.
+*For example, Fast R-CNN selects the convolution layer conv5 in VGG16 to generate ROIs which later combine with the corresponding feature maps to form patches for object detection. The patches are wraped to a fixed size using ROI pooling and feed to fully connected layers for classification and detecting the locations. *
 
 Let’s simplify the discussion by transforming 8 × 8 feature maps into a predefined 2 × 2 shape.
-
 Top left below: our feature maps.
 Top right: we overlap the ROI (blue) with the feature maps.
 Bottom left: we split ROIs into the target dimension. For example, with our 2×2 target, we split the ROIs into 4 sections with similar or equal sizes.
 Bottom right: find the maximum for each section and the result is our warped feature maps.
 So we get a 2 × 2 feature patch that we can feed into the classifier and box regressor.
+
+###2.3 The Loss Function.
+
+*Fast R-CNN advances at the whole network (the feature extractor, the classifier, and the boundary box regressor) can be trained end-to-end with multi-task losses (classification loss and localization loss). This significantly improves accuracy.*
 
 ## 3 Reimplement Faster RCNN with Pedestrian Detection Dataset.
 
