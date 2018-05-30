@@ -9,11 +9,12 @@ Since AlexNet acheieved its great sucess at 2012 in ILSVRC challenge, the applic
 ### 1.0 Before R-CNN: Slideing-windows and Selective-search.
 
 Before all advanced developments in object detection, the solution for applying CNN to object detection  is to slide a windows all over the image and identify objects with classification; and patches from the original images are cut out then to feed in the classification CNN to extract features, inner products to classify and linear regressor for boudiary box.
+![sliding-window](images/sliding-windows.png)
 
 ps. To detect various object  at different viewing distances, windows of various sizes and aspect ratios has been used. The patches are then warped to fit the fixed size classfigiers. But this will not impact the classification accuracy since the classifier are trained to handle warped images.
 
 Instead of such a brute method of exhaustion,  a region proposal method to create regions of interest (ROIs) for object detection is rasied as selective search (SS). Individual pixel are grouped by calculating the texture and combine the closest ones. 
-
+![selective-search](images/selective-search.png)
 ps. To deal with ovelapping groups, smaller ones are groupped first and then merging regions till everything is combined. 
 
 ### 1.1 R-CNN.
@@ -22,17 +23,21 @@ ps. To deal with ovelapping groups, smaller ones are groupped first and then mer
 [source code](https://github.com/rbgirshick/rcnn)
 At the time of its release, R-CNN is the state-of-the-art visual object detection system; it combines bottom-up region proposals with rich features computed by a convolutional neural network. R-CNN improved the previous best detection performance on PASCAL VOC 2012 by 30% relative, going from 40.9% to 53.3% mean average precision. 
 
-R-CNN makes use of a region proposal method to create about 2000 ROIs (regions of interest).
+R-CNN applys region proposal method to create about 2000 ROIs (regions of interest) from each training images. And then these ROIs are wraped and feed into a CNN network for classification and booudary box regression.
+![rcnn diagram](images/rcnn.png)
+
+Comparing to the sliding-windows solution, the R-CNN takes fewer but higher quality ROIs and thus runs faster and more accurate.
 
 ### 1.2 Fast R-CNN.
 [publication](https://arxiv.org/pdf/1504.08083.pdf)
 [source code](https://github.com/rbgirshick/fast-rcnn)
 
+
 ### 1.3 Faster R-CNN.
 [publication](https://arxiv.org/pdf/1506.01497.pdf)
 [](https://github.com/rbgirshick/py-faster-rcnn)
 
-The Faster R-CNN
+The Faster R-CNN 
 
 ### 1.4 R-FCN and Other State of Art Developments.
 
