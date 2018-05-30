@@ -4,6 +4,38 @@
 
 ## 1 History and Design Evolution of R-CNN.
 
+Since AlexNet acheieved its great sucess at 2012 in ILSVRC challenge, the application of the Converlutional Neural Network for image classification has dominated the field of both research and industry.  Within this topic, a brief review of the developments on object detection techniques will be presented; region based object detectors including R-CNN, Fast R-CNN, Faster R-CNN and R-FCN will be discussed. To sort out the tech-developments through history will not stay as a review only but also provide a better insight of future.
+
+### 1.0 Before R-CNN: Slideing-windows and Selective-search.
+
+Before all advanced developments in object detection, the solution for applying CNN to object detection  is to slide a windows all over the image and identify objects with classification; and patches from the original images are cut out then to feed in the classification CNN to extract features, inner products to classify and linear regressor for boudiary box.
+
+ps. To detect various object  at different viewing distances, windows of various sizes and aspect ratios has been used. The patches are then warped to fit the fixed size classfigiers. But this will not impact the classification accuracy since the classifier are trained to handle warped images.
+
+Instead of such a brute method of exhaustion,  a region proposal method to create regions of interest (ROIs) for object detection is rasied as selective search (SS). Individual pixel are grouped by calculating the texture and combine the closest ones. 
+
+ps. To deal with ovelapping groups, smaller ones are groupped first and then merging regions till everything is combined. 
+
+### 1.1 R-CNN.
+
+[publication](https://arxiv.org/pdf/1311.2524v5.pdf) 
+[source code](https://github.com/rbgirshick/rcnn)
+At the time of its release, R-CNN is the state-of-the-art visual object detection system; it combines bottom-up region proposals with rich features computed by a convolutional neural network. R-CNN improved the previous best detection performance on PASCAL VOC 2012 by 30% relative, going from 40.9% to 53.3% mean average precision. 
+
+R-CNN makes use of a region proposal method to create about 2000 ROIs (regions of interest).
+
+### 1.2 Fast R-CNN.
+[publication](https://arxiv.org/pdf/1504.08083.pdf)
+[source code](https://github.com/rbgirshick/fast-rcnn)
+
+### 1.3 Faster R-CNN.
+[publication](https://arxiv.org/pdf/1506.01497.pdf)
+[](https://github.com/rbgirshick/py-faster-rcnn)
+
+The Faster R-CNN
+
+### 1.4 R-FCN and Other State of Art Developments.
+
 
 ## 2  Faster R-CNN Reimplementation and Analysis of Framework and Key Components.
 (*The answer to question 01 is included here: "Please describe the 2 key components in the Faster R-CNN framework"*)
