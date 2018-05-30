@@ -45,10 +45,11 @@ By not repeating the feature extractions, Fast R-CNN significantly cuts down the
 
 Faster R-CNN is an object detection framework based on deep convolutional networks, which includes a Region Proposal Network (RPN) and an Object Detection Network. Both networks are trained for sharing convolutional layers for fast testing; the offical implementation is in matlab. The main result:
 
-                         |  | training data                          | test data            | mAP   | time/img|
-:------------------------- |:--------------------------------------:|:--------------------:|:-----:|:-----:|
-Faster RCNN, VGG-16       | VOC 2007 trainval + 2012 trainval      | VOC 2007 test        | 73.2% | 198ms
-Faster RCNN, VGG-16       | VOC 2007 trainval&test + 2012 trainval | VOC 2012 test        | 70.4% | 198ms
+
+ |                         | training data                          | test data            | mAP   | time/img|
+|:------------------------- |:--------------------------------------:|:--------------------:|:-----:|:-----:|
+|Faster RCNN, VGG-16       | VOC 2007 trainval + 2012 trainval      | VOC 2007 test        | 73.2% | 198ms|
+|Faster RCNN, VGG-16       | VOC 2007 trainval&test + 2012 trainval | VOC 2012 test        | 70.4% | 198ms|
 
 Fast R-CNN depends on an external CPU based region proposal method which is slow. Faster R-CNN applys the same network design but replaces the region proposal method by an internal deep network. The new region proposal network (RPN) is more efficient and run at 10 ms per image in generating ROIs comparing to 2.3 seconds in Fast R-CNN.
 
