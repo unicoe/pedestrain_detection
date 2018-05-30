@@ -4,17 +4,18 @@
 
 ## 1 History and Design Evolution of R-CNN.
 
-Since AlexNet acheieved its great sucess at 2012 in ILSVRC challenge, the application of the Converlutional Neural Network for image classification has dominated the field of both research and industry.  Within this topic, a brief review of the developments on object detection techniques will be presented; region based object detectors including R-CNN, Fast R-CNN, Faster R-CNN and R-FCN will be discussed. To sort out the tech-developments through history will not stay as a review only but also provide a better insight of future.
+Since AlexNet acheieved its great sucess at 2012 in ILSVRC challenge, the application of the Converlutional Neural Network for image classification has dominated the field of both research and industry.  Within this topic, a brief review of the developments on object detection techniques will be presented; region based object detectors including R-CNN, Fast R-CNN, Faster R-CNN and R-FCN will be discussed. To sort out the tech-developments through history will not stay as a review only but also provide a better insight of future. 
+
+And this topic content is heavily based on article [What do we learn from region based object detectors (Faster R-CNN, R-FCN, FPN)?](https://medium.com/@jonathan_hui/what-do-we-learn-from-region-based-object-detectors-faster-r-cnn-r-fcn-fpn-7e354377a7c9) post by [@Jonathan Hui](https://medium.com/@jonathan_hui) on Medium.
 
 ### 1.0 Before R-CNN: Slideing-windows and Selective-search.
 
 Before all advanced developments in object detection, the solution for applying CNN to object detection  is to slide a windows all over the image and identify objects with classification; and patches from the original images are cut out then to feed in the classification CNN to extract features, inner products to classify and linear regressor for boudiary box.
 ![sliding-window](images/sliding-windows.png)
-
 ps. To detect various object  at different viewing distances, windows of various sizes and aspect ratios has been used. The patches are then warped to fit the fixed size classfigiers. But this will not impact the classification accuracy since the classifier are trained to handle warped images.
 
 Instead of such a brute method of exhaustion,  a region proposal method to create regions of interest (ROIs) for object detection is rasied as selective search (SS). Individual pixel are grouped by calculating the texture and combine the closest ones. 
-![selective-search](images/selective-search.png)
+<!--![selective-search](images/selective-search.png)-->
 ps. To deal with ovelapping groups, smaller ones are groupped first and then merging regions till everything is combined. 
 
 ### 1.1 R-CNN.
@@ -25,19 +26,35 @@ At the time of its release, R-CNN is the state-of-the-art visual object detectio
 
 R-CNN applys region proposal method to create about 2000 ROIs (regions of interest) from each training images. And then these ROIs are wraped and feed into a CNN network for classification and booudary box regression.
 ![rcnn diagram](images/rcnn.png)
-
 Comparing to the sliding-windows solution, the R-CNN takes fewer but higher quality ROIs and thus runs faster and more accurate.
 
 ### 1.2 Fast R-CNN.
 [publication](https://arxiv.org/pdf/1504.08083.pdf)
 [source code](https://github.com/rbgirshick/fast-rcnn)
+Fast R-CNN is a fast framework for object detection with deep ConvNets. Fast R-CNN trains state-of-the-art models, like VGG16, 9x faster than traditional R-CNN and 3x faster than SPPnet, runs 200x faster than R-CNN and 10x faster than SPPnet at test-time, has a significantly higher mAP on PASCAL VOC than both R-CNN and SPPnet, and is written in Python and C++/Caffe.
 
+R-CNN needs many proposals to be accurate and the same reason makes R-CNN slow in both training & test. For instance, 2,000 proposals for each training/testing image and  each proposal is processed by CNN separately which ends with repeating the feature extractions 2,000 times. 
+
+Instead of extracting features for each proposal (image batch) from scratch, a CNN is used to extract features for the whole image first and then apply the region proposal method on the feature maps directly. For example, Fast R-CNN selects the convolution layer conv5 in VGG16 to generate ROIs which later combine with the corresponding feature maps to form patches for object detection. The patches are wraped to a fixed size using ROI pooling and feed to fully connected layers for classification and detecting the locations. 
+![fast-rcnn](images/fast-rcnn.png)
+By not repeating the feature extractions, Fast R-CNN significantly cuts down the process time. Fast R-CNN advances at the whole network (the feature extractor, the classifier, and the boundary box regressor) can be trained end-to-end with multi-task losses (classification loss and localization loss). This significantly improves accuracy.
 
 ### 1.3 Faster R-CNN.
 [publication](https://arxiv.org/pdf/1506.01497.pdf)
-[](https://github.com/rbgirshick/py-faster-rcnn)
+[source code](https://github.com/ShaoqingRen/faster_rcnn)
 
-The Faster R-CNN 
+Faster R-CNN is an object detection framework based on deep convolutional networks, which includes a Region Proposal Network (RPN) and an Object Detection Network. Both networks are trained for sharing convolutional layers for fast testing; the offical implementation is in matlab. The main result:
+
+                          | training data                          | test data            | mAP   | time/img|
+:------------------------- |:--------------------------------------:|:--------------------:|:-----:|:-----:|
+Faster RCNN, VGG-16       | VOC 2007 trainval + 2012 trainval      | VOC 2007 test        | 73.2% | 198ms
+Faster RCNN, VGG-16       | VOC 2007 trainval&test + 2012 trainval | VOC 2012 test        | 70.4% | 198ms
+
+Fast R-CNN depends on an external CPU based region proposal method which is slow. Faster R-CNN applys the same network design but replaces the region proposal method by an internal deep network. The new region proposal network (RPN) is more efficient and run at 10 ms per image in generating ROIs comparing to 2.3 seconds in Fast R-CNN.
+
+The network flow is the same but the region proposal is now replaced by a convolutional network (RPN).
+
+![faster-rcnn](images/faster-rcnn.png)
 
 ### 1.4 R-FCN and Other State of Art Developments.
 
@@ -45,9 +62,26 @@ The Faster R-CNN
 ## 2  Faster R-CNN Reimplementation and Analysis of Framework and Key Components.
 (*The answer to question 01 is included here: "Please describe the 2 key components in the Faster R-CNN framework"*)
 
+### 2.1 Python Implementation of Faster R-CNN.
+This part of work serves as the foudation of this project, and thanks to [@rbgirshick](https://github.com/rbgirshick) for the detailed documentation, this is no much difficulty in reimplementing the work but following the [tutorial](https://github.com/rbgirshick/py-faster-rcnn) carefully, and one thing to clarify is the end to end method (not the multi-stage) is taken in all implementations in this project.
+And the result running a linux sever with graphic card 1080Ti  is attached here:
+
+### 2.2 The RoIPooling Layer for Fast and Faster R-CNN.
+
+
+Because Fast R-CNN uses fully connected layers, we apply ROI pooling to warp the variable size ROIs into in a predefined size shape.
+
+Let’s simplify the discussion by transforming 8 × 8 feature maps into a predefined 2 × 2 shape.
+
+Top left below: our feature maps.
+Top right: we overlap the ROI (blue) with the feature maps.
+Bottom left: we split ROIs into the target dimension. For example, with our 2×2 target, we split the ROIs into 4 sections with similar or equal sizes.
+Bottom right: find the maximum for each section and the result is our warped feature maps.
+So we get a 2 × 2 feature patch that we can feed into the classifier and box regressor.
+
 ## 3 Reimplement Faster RCNN with Pedestrian Detection Dataset.
 
-The offical faster R-CNN python implementation from [@rbgirshick](https://github.com/rbgirshick) works with `Pascal Voc `dataset while this project aims at pedestrian detecting. Thus, to adapt the existed implementation to pedestrian dataset like `Caltech, Kitti and INRIA` is the essential part for implementing. And in this report, how to prepare the caltech dataset will first be introduced. And how to modify the network model will then be explained.  The last topic will be the performance analysis and demonstration of the trained network.
+The python faster R-CNN implementation from [@rbgirshick](https://github.com/rbgirshick) works with `Pascal Voc `dataset while this project aims at pedestrian detecting. Thus, to adapt the existed implementation to pedestrian dataset like `Caltech, Kitti and INRIA` is the essential part for implementing. And in this report, how to prepare the caltech dataset will first be introduced. And how to modify the network model will then be explained.  The last topic will be the performance analysis and demonstration of the trained network.
 
 And this part of work is heavily based on [py-faster-rcnn-caltech-pedestrian](https://github.com/govindnh4cl/py-faster-rcnn-caltech-pedestrian).
 
