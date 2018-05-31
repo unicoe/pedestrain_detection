@@ -11,7 +11,9 @@ And this topic content is heavily based on article [What do we learn from region
 ### 1.0 Before R-CNN: Slideing-windows and Selective-search.
 
 Before all advanced developments in object detection, the solution for applying CNN to object detection  is to slide a windows all over the image and identify objects with classification; and patches from the original images are cut out then to feed in the classification CNN to extract features, inner products to classify and linear regressor for boudiary box.
+
 ![sliding-window](images/sliding-windows.png)
+
 ps. To detect various object  at different viewing distances, windows of various sizes and aspect ratios has been used. The patches are then warped to fit the fixed size classfigiers. But this will not impact the classification accuracy since the classifier are trained to handle warped images.
 
 Instead of such a brute method of exhaustion,  a region proposal method to create regions of interest (ROIs) for object detection is rasied as selective search (SS). Individual pixel are grouped by calculating the texture and combine the closest ones. 
@@ -21,26 +23,37 @@ ps. To deal with ovelapping groups, smaller ones are groupped first and then mer
 ### 1.1 R-CNN.
 
 [publication](https://arxiv.org/pdf/1311.2524v5.pdf) 
+
 [source code](https://github.com/rbgirshick/rcnn)
+
 At the time of its release, R-CNN is the state-of-the-art visual object detection system; it combines bottom-up region proposals with rich features computed by a convolutional neural network. R-CNN improved the previous best detection performance on PASCAL VOC 2012 by 30% relative, going from 40.9% to 53.3% mean average precision. 
 
 R-CNN applys region proposal method to create about 2000 ROIs (regions of interest) from each training images. And then these ROIs are wraped and feed into a CNN network for classification and booudary box regression.
+
 ![rcnn diagram](images/rcnn.png)
+
 Comparing to the sliding-windows solution, the R-CNN takes fewer but higher quality ROIs and thus runs faster and more accurate.
 
 ### 1.2 Fast R-CNN.
+
 [publication](https://arxiv.org/pdf/1504.08083.pdf)
+
 [source code](https://github.com/rbgirshick/fast-rcnn)
+
 Fast R-CNN is a fast framework for object detection with deep ConvNets. Fast R-CNN trains state-of-the-art models, like VGG16, 9x faster than traditional R-CNN and 3x faster than SPPnet, runs 200x faster than R-CNN and 10x faster than SPPnet at test-time, has a significantly higher mAP on PASCAL VOC than both R-CNN and SPPnet, and is written in Python and C++/Caffe.
 
 R-CNN needs many proposals to be accurate and the same reason makes R-CNN slow in both training & test. For instance, 2,000 proposals for each training/testing image and  each proposal is processed by CNN separately which ends with repeating the feature extractions 2,000 times. 
 
 Instead of extracting features for each proposal (image batch) from scratch, a CNN is used to extract features for the whole image first and then apply the region proposal method on the feature maps directly. For example, Fast R-CNN selects the convolution layer conv5 in VGG16 to generate ROIs which later combine with the corresponding feature maps to form patches for object detection. The patches are wraped to a fixed size using ROI pooling and feed to fully connected layers for classification and detecting the locations. 
+
 ![fast-rcnn](images/fast-rcnn.png)
+
 By not repeating the feature extractions, Fast R-CNN significantly cuts down the process time. Fast R-CNN advances at the whole network (the feature extractor, the classifier, and the boundary box regressor) can be trained end-to-end with multi-task losses (classification loss and localization loss). This significantly improves accuracy.
 
 ### 1.3 Faster R-CNN.
+
 [publication](https://arxiv.org/pdf/1506.01497.pdf)
+
 [source code](https://github.com/ShaoqingRen/faster_rcnn)
 
 Faster R-CNN is an object detection framework based on deep convolutional networks, which includes a Region Proposal Network (RPN) and an Object Detection Network. Both networks are trained for sharing convolutional layers for fast testing; the offical implementation is in matlab. The main result:
@@ -123,7 +136,9 @@ Results:
 (*The answer to question 01 is included here: "Please describe the 2 key components in the Faster R-CNN framework: the RoIPooling layer"*)
 
 RoIPooling is a max pooling layer take region of interest features as input and output smaller size feature maps.
+
 ![roipooling](images/roipooling.png)
+
 The regions of interest come in different sizes but the following fully connected layers take fixed size imput, thus the RoIPooling should pool the different size inputs into same fixed size output. The machnism being used is to divide the input with a grid same size as the output; for various input sizes $(H_i * W_i)$  and fixed output size $(H_o * W_o)$, a $(H_o * W_o)$ grid with cell size $(\frac{H_i }{H_o }* \frac{W_i} {W_o})$ will be applied to the inputs and  the max value in each cell will be taken as the responding value for output.
 
 For example, Fast R-CNN selects the convolution layer conv5 in VGG16 to generate ROIs which later combine with the corresponding feature maps to form patches for object detection. The patches are wraped to a fixed size 7\*7 using ROI pooling and feed to fully connected layers for classification and detecting the locations.
@@ -154,7 +169,6 @@ And this part of work is heavily based on [py-faster-rcnn-caltech-pedestrian](ht
 The [Caltech](http://www.vision.caltech.edu/Image_Datasets/CaltechPedestrians/) pedestrain dataset consists of approximately 10 hours of 640x480 30Hz video taken from a vehicle driving through regular traffic in an urban environment. About 250,000 frames (in 137 approximately minute long segments) with a total of 350,000 bounding boxes and 2300 unique pedestrians were annotated. The annotation includes temporal correspondence between bounding boxes and detailed occlusion labels. 
 
 In order to use Caltech dataset for Faster R-CNN,  3 essential parts of data need to be obtained/converted from the raw data: Annotations, ImageSets, JPEGImages, which are the label data, text file with images name as lists and images in jpg format respectively. In this project, 8 substeps are implemented to obtain the required data. 
-
 
 #### 3.1.1 Create directory structure.
 
