@@ -141,7 +141,7 @@ The so called multi-task loss is simply the sum of the classification loss and t
 And the bounding-box regression loss is calculate with formula: \\[L_{loc}(t^u,v) = \sum_{i\in \{x,y,w,h\}}smoothL_1(t^u - v_i)\\] where the smooth function is: \\[smooth_L_1(x) = \left\{\begin{matrix}
 0.5x^2, \left |x  \right |<1\\ 
 \left |x  \right |-0.5, otherwise
-\end{matrix}\right\\] simply takes the ground-truth bounding box and compute $L_{loc}$.
+\end{matrix}\right\\] simply takes the ground-truth bounding box $v_i$ and compute $L_{loc}$ with the genetated $t^u$.
 
 ## 3 Reimplement Faster RCNN with Pedestrian Detection Dataset.
 
