@@ -61,7 +61,6 @@ The network flow is the same but the region proposal is now replaced by a convol
 
 
 ## 2  Faster R-CNN Reimplementation and Analysis of Framework and Key Components.
-(*The answer to question 01 is included here: "Please describe the 2 key components in the Faster R-CNN framework"*)
 
 Based on a historial review on all relative developments, this part will implement the Faster R-CNN end to end training and explain how the key components works for the framework to demonstrate an comprehensive understanding of these techniques.
 
@@ -69,24 +68,80 @@ Based on a historial review on all relative developments, this part will impleme
 
 This part of work serves as the foudation of this project, and thanks to [@rbgirshick](https://github.com/rbgirshick) for the detailed documentation, this is no much difficulty in reimplementing the work but following the [tutorial](https://github.com/rbgirshick/py-faster-rcnn) carefully, and one thing to clarify is the end to end method (not the multi-stage) is taken in all implementations in this project.
 
-And the result running a linux sever with graphic card 1080Ti  is attached here:
+And the result running on a linux sever with *Nvidia GeForce GTX 1080Ti* is attached here:
+
+```shell
+OC07 metric? Yes
+AP for aeroplane = 0.6580
+AP for bicycle = 0.6718
+AP for bird = 0.5780
+AP for boat = 0.4262
+AP for bottle = 0.3364
+AP for bus = 0.6378
+AP for car = 0.7389
+AP for cat = 0.7173
+AP for chair = 0.4074
+AP for cow = 0.6608
+AP for diningtable = 0.6166
+AP for dog = 0.6584
+AP for horse = 0.7627
+AP for motorbike = 0.6928
+AP for person = 0.6683
+AP for pottedplant = 0.3271
+AP for sheep = 0.6080
+AP for sofa = 0.5743
+AP for train = 0.7008
+AP for tvmonitor = 0.6637
+Mean AP = 0.6053
+~~~~~~~~
+Results:
+0.658
+0.672
+0.578
+0.426
+0.336
+0.638
+0.739
+0.717
+0.407
+0.661
+0.617
+0.658
+0.763
+0.693
+0.668
+0.327
+0.608
+0.574
+0.701
+0.664
+0.605
+~~~~~~~~
+```
 
 ### 2.2 The RoIPooling Layer for Fast and Faster R-CNN.
+(*The answer to question 01 is included here: "Please describe the 2 key components in the Faster R-CNN framework: the RoIPooling layer"*)
 
-Since Fast R-CNN uses fully connected layers, the various RoI batchs(feature map) needs to be warpped into in a predefined size shape and feed into fc layers. 
+RoIPooling is a max pooling layer take region of interest features as input and output smaller size feature maps.
+![roipooling](images/roipooling.png)
+The regions of interest come in different sizes but the following fully connected layers take fixed size imput, thus the RoIPooling should pool the different size inputs into same fixed size output. The machnism being used is to divide the input with a grid same size as the output; for various input sizes $(H_i * W_i)$  and fixed output size $(H_o * W_o)$, a $(H_o * W_o)$ grid with cell size $(\frac{H_i }{H_o }* \frac{W_i} {W_o})$ will be applied to the inputs and  the max value in each cell will be taken as the responding value for output.
 
-*For example, Fast R-CNN selects the convolution layer conv5 in VGG16 to generate ROIs which later combine with the corresponding feature maps to form patches for object detection. The patches are wraped to a fixed size using ROI pooling and feed to fully connected layers for classification and detecting the locations. *
+For example, Fast R-CNN selects the convolution layer conv5 in VGG16 to generate ROIs which later combine with the corresponding feature maps to form patches for object detection. The patches are wraped to a fixed size 7\*7 using ROI pooling and feed to fully connected layers for classification and detecting the locations.
 
-Let’s simplify the discussion by transforming 8 × 8 feature maps into a predefined 2 × 2 shape.
-Top left below: our feature maps.
-Top right: we overlap the ROI (blue) with the feature maps.
-Bottom left: we split ROIs into the target dimension. For example, with our 2×2 target, we split the ROIs into 4 sections with similar or equal sizes.
-Bottom right: find the maximum for each section and the result is our warped feature maps.
-So we get a 2 × 2 feature patch that we can feed into the classifier and box regressor.
+### 2.3 The Loss Function.
+(*The answer to question 01 is included here: "Please describe the 2 key components in the Faster R-CNN framework: the Loss Function"*)
 
-###2.3 The Loss Function.
+Fast and Faster R-CNN advances at the whole network (the feature extractor, the classifier, and the boundary box regressor) can be trained end-to-end with multi-task losses (classification loss and localization loss). 
 
-*Fast R-CNN advances at the whole network (the feature extractor, the classifier, and the boundary box regressor) can be trained end-to-end with multi-task losses (classification loss and localization loss). This significantly improves accuracy.*
+The so called multi-task loss is simply the sum of the classification loss and the bouding-box regression loss. Following formula: \\[L(p, u, t^u, v) = L_{cls}(p,u) + \lambda[ u \geq 1]L_{loc}(t^u,v) \\]where $L_{cls}(p,u)$ is classification loss for each RoI and using log loss $L_{cls}(p,u) = -logp_u$ and the second part is for bouding-box regression loss; the $\lambda[u\geq 1]$is a conditional factor: $\lambda= \left\{\begin{matrix}
+1, u \geq 1\\ 
+0, u < 1
+\end{matrix}\right.$ when the classifcation score u is greater or equal to one means the object is correctly classified then the bouding-box regression loss is added to the multi-task loss, however if the u is less than one and the object is not well classified the $\lambda$ is set to zero and the bounding-box loss will not be included.
+
+And the bounding-box regression loss is calculate with formula: \\[L_{loc}(t^u,v) = \sum_{i\in \{x,y,w,h\}}smoothL_1(t^u - v_i)\\] where the smooth function is: \\[smooth_L_1(x) = \left\{\begin{matrix}
+0.5x^2, \left |x  \right |<1\\ 
+\left |x  \right |-0.5, otherwise
+\end{matrix}\right\\] simply takes the ground-truth bounding box and compute $L_{loc}$.
 
 ## 3 Reimplement Faster RCNN with Pedestrian Detection Dataset.
 
@@ -98,7 +153,7 @@ And this part of work is heavily based on [py-faster-rcnn-caltech-pedestrian](ht
 
 The [Caltech](http://www.vision.caltech.edu/Image_Datasets/CaltechPedestrians/) pedestrain dataset consists of approximately 10 hours of 640x480 30Hz video taken from a vehicle driving through regular traffic in an urban environment. About 250,000 frames (in 137 approximately minute long segments) with a total of 350,000 bounding boxes and 2300 unique pedestrians were annotated. The annotation includes temporal correspondence between bounding boxes and detailed occlusion labels. 
 
-In order to use Caltech dataset for faster R-CNN,  3 essential parts of data need to be obtained/converted from the raw data: Annotations, ImageSets, JPEGImages, which are the label data, text file with images name as lists and images in jpg format respectively. In this project, 8 substeps are implemented to obtain the required data. 
+In order to use Caltech dataset for Faster R-CNN,  3 essential parts of data need to be obtained/converted from the raw data: Annotations, ImageSets, JPEGImages, which are the label data, text file with images name as lists and images in jpg format respectively. In this project, 8 substeps are implemented to obtain the required data. 
 
 
 #### 3.1.1 Create directory structure.
@@ -491,17 +546,29 @@ Three essential files here need to be modified;
 
 * `models/VGG16/faster_rcnn_end2end/train.prototxt`; Change the output params for `cls_score` and `bbox_pred`  layers.
 * `models/VGG16/faster_rcnn_end2end/train.prototxt`; Change the name for `cls_score` and `bbox_pred`  layers to a new name like `new_cls_score` and `new_bbox_pred` .
-* `lib/train.py`; Change the function name/ parameter name from `cls_score` and `bbox_pred`  to  `new_cls_score` and `new_bbox_pred`.
+* `lib/fast_rcnn/train.py`; Change the function name/ parameter name from `cls_score` and `bbox_pred`  to  `new_cls_score` and `new_bbox_pred`.
+* `models/VGG16/faster_rcnn_end2end/test.prototxt`; Change the output params for `cls_score` and `bbox_pred`  layers.
+* `models/VGG16/faster_rcnn_end2end/test.prototxt`; Change the name for `cls_score` and `bbox_pred`  layers to a new name like `new_cls_score` and `new_bbox_pred` .
+* `lib/fast_rcnn/test.py`; Change the function name/ parameter name from `cls_score` and `bbox_pred`  to  `new_cls_score` and `new_bbox_pred`.
 
-Everything should be set and the training can be started from here.
+The last error will happpen after the network is trained and right before the testing is 
+
+```shell
+test_net.py: error: argument --net: expected one argument
+```
+
+ this is because  in the `.sh` code there is one more argument required to be passed in, simply delete or comment the last line `  \${EXTRA_ARGS}`, the forward slash at the end of code `  --cfg experiments/cfgs/faster_rcnn_end2end.yml ` should also be removed, can fix the issue.
+
+Everything should be set and the model training starts here.
 
 ### 3.3 Performance and Evaluation: mAp and demos.
-The log file is attached at the end of this reprot, and some of the essential info is listed here.
+The log file is attached at the end of this report, and some of the essential info is listed here.
 #### 3.3.1 mAP(Mean Average Precision).
 (*The answer to question 02 is provided here: "Please describe the object detection performance metric, mAP (Mean Average Precision), and explain why it can well reflect the object detection accuracy."*)
 
 #### 3.3.2 Final mAP performance and demo samples.
 (*The answer to question 03 is provided here: "Please train and test the Fast R-CNN framework on one of the existing pedestrian detection datasets, and report the final mAP performance that you have achieved.  The dataset could be Caltech, INRIA, KITTI . Please also report some pedestrian detection examples by including the images and bounding boxes."*)
+
 To demonstrate the train model over sample images on the headless server, the output images can not be displayed but saved . And some  modifications have to be done to the `demo.py` code.
 
 Python code attached here:
@@ -509,6 +576,7 @@ Python code attached here:
 ```python
 
 ```
+
 
 ### 3.4 Implement Faster R-CNN on Kitti Datasets.
 
