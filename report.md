@@ -2,21 +2,21 @@
 
 ## 1 History and Design Evolution of R-CNN.
 
-Since AlexNet acheieved its great sucess at 2012 in ILSVRC challenge, the application of the Converlutional Neural Network for image classification has dominated the field of both research and industry.  Within this topic, a brief review of the developments on object detection techniques will be presented; region based object detectors including R-CNN, Fast R-CNN, Faster R-CNN and R-FCN will be discussed. To sort out the tech-developments through history will not stay as a review only but also provide a better insight of future. 
+Since AlexNet achieved its great success at 2012 in ILSVRC challenge, the application of the Convolution Neural Network for image classification has dominated the field of both research and industry.  Within this topic, a brief review of the developments on object detection techniques will be presented; region based object detectors including R-CNN, Fast R-CNN, Faster R-CNN and R-FCN will be discussed. To sort out the tech-developments through history will not stay as a review only but also provide a better insight of future. 
 
 And this topic content is heavily based on article [What do we learn from region based object detectors (Faster R-CNN, R-FCN, FPN)?](https://medium.com/@jonathan_hui/what-do-we-learn-from-region-based-object-detectors-faster-r-cnn-r-fcn-fpn-7e354377a7c9) post by [@Jonathan Hui](https://medium.com/@jonathan_hui) on Medium.
 
-### 1.0 Before R-CNN: Slideing-windows and Selective-search.
+### 1.0 Before R-CNN: Sliding-windows and Selective-search.
 
-Before all advanced developments in object detection, the solution for applying CNN to object detection  is to slide a windows all over the image and identify objects with classification; and patches from the original images are cut out then to feed in the classification CNN to extract features, inner products to classify and linear regressor for boudiary box.
+Before all advanced developments in object detection, the solution for applying CNN to object detection  is to slide a windows all over the image and identify objects with classification; and patches from the original images are cut out then to feed in the classification CNN to extract features, inner products to classify and linear regressors for bounding box.
 
 ![sliding-window](images/sliding-windows.png)
 
-ps. To detect various object  at different viewing distances, windows of various sizes and aspect ratios has been used. The patches are then warped to fit the fixed size classfigiers. But this will not impact the classification accuracy since the classifier are trained to handle warped images.
+ps. To detect various object  at different viewing distances, windows of various sizes and aspect ratios has been used. The patches are then warped to fit the fixed size classifiers. But this will not impact the classification accuracy since the classifier are trained to handle warped images.
 
-Instead of such a brute method of exhaustion,  a region proposal method to create regions of interest (ROIs) for object detection is rasied as selective search (SS). Individual pixel are grouped by calculating the texture and combine the closest ones. 
+Instead of such a brute method of exhaustion,  a region proposal method to create regions of interest (ROIs) for object detection is raised as selective search (SS). Individual pixel are grouped by calculating the texture and combine the closest ones. 
 <!--![selective-search](images/selective-search.png)-->
-ps. To deal with ovelapping groups, smaller ones are groupped first and then merging regions till everything is combined. 
+ps. To deal with overlapping groups, smaller ones are grouped first and then merging regions till everything is combined. 
 
 ### 1.1 R-CNN.
 
@@ -24,9 +24,9 @@ ps. To deal with ovelapping groups, smaller ones are groupped first and then mer
 
 [source code](https://github.com/rbgirshick/rcnn)
 
-At the time of its release, R-CNN is the state-of-the-art visual object detection system; it combines bottom-up region proposals with rich features computed by a convolutional neural network. R-CNN improved the previous best detection performance on PASCAL VOC 2012 by 30% relative, going from 40.9% to 53.3% mean average precision. 
+At the time of its release, R-CNN is the state-of-the-art visual object detection system; it combines bottom-up region proposals with rich features computed by a convolution neural network. R-CNN improved the previous best detection performance on PASCAL VOC 2012 by 30% relative, going from 40.9% to 53.3% mean average precision. 
 
-R-CNN applys region proposal method to create about 2000 ROIs (regions of interest) from each training images. And then these ROIs are wraped and feed into a CNN network for classification and booudary box regression.
+R-CNN applies region proposal method to create about 2000 ROIs (regions of interest) from each training images. And then these ROIs are wrapped and feed into a CNN network for classification and bounding box regression.
 
 ![rcnn diagram](images/rcnn.png)
 
@@ -42,11 +42,11 @@ Fast R-CNN is a fast framework for object detection with deep ConvNets. Fast R-C
 
 R-CNN needs many proposals to be accurate and the same reason makes R-CNN slow in both training & test. For instance, 2,000 proposals for each training/testing image and  each proposal is processed by CNN separately which ends with repeating the feature extractions 2,000 times. 
 
-Instead of extracting features for each proposal (image batch) from scratch, a CNN is used to extract features for the whole image first and then apply the region proposal method on the feature maps directly. For example, Fast R-CNN selects the convolution layer conv5 in VGG16 to generate ROIs which later combine with the corresponding feature maps to form patches for object detection. The patches are wraped to a fixed size using ROI pooling and feed to fully connected layers for classification and detecting the locations. 
+Instead of extracting features for each proposal (image batch) from scratch, a CNN is used to extract features for the whole image first and then apply the region proposal method on the feature maps directly. For example, Fast R-CNN selects the convolution layer conv5 in VGG16 to generate ROIs which later combine with the corresponding feature maps to form patches for object detection. The patches are wrapped to a fixed size using ROI pooling and feed to fully connected layers for classification and detecting the locations. 
 
 ![fast-rcnn](images/fast-rcnn.png)
 
-By not repeating the feature extractions, Fast R-CNN significantly cuts down the process time. Fast R-CNN advances at the whole network (the feature extractor, the classifier, and the boundary box regressor) can be trained end-to-end with multi-task losses (classification loss and localization loss). This significantly improves accuracy.
+By not repeating the feature extractions, Fast R-CNN significantly cuts down the process time. Fast R-CNN advances at the whole network (the feature extractor, the classifier, and the bounding box regressors) can be trained end-to-end with multi-task losses (classification loss and localization loss). This significantly improves accuracy.
 
 ### 1.3 Faster R-CNN.
 
@@ -54,7 +54,7 @@ By not repeating the feature extractions, Fast R-CNN significantly cuts down the
 
 [source code](https://github.com/ShaoqingRen/faster_rcnn)
 
-Faster R-CNN is an object detection framework based on deep convolutional networks, which includes a Region Proposal Network (RPN) and an Object Detection Network. Both networks are trained for sharing convolutional layers for fast testing; the offical implementation is in matlab. The main result:
+Faster R-CNN is an object detection framework based on deep convolution networks, which includes a Region Proposal Network (RPN) and an Object Detection Network. Both networks are trained for sharing convolution layers for fast testing; the official implementation is in matlab. The main result:
 
 
 |                         | training data                          | test data            | mAP   | time/img|
@@ -62,9 +62,9 @@ Faster R-CNN is an object detection framework based on deep convolutional networ
 |Faster RCNN, VGG-16       | VOC 2007 trainval + 2012 trainval      | VOC 2007 test        | 73.2% | 198ms|
 |Faster RCNN, VGG-16       | VOC 2007 trainval&test + 2012 trainval | VOC 2012 test        | 70.4% | 198ms|
 
-Fast R-CNN depends on an external CPU based region proposal method which is slow. Faster R-CNN applys the same network design but replaces the region proposal method by an internal deep network. The new region proposal network (RPN) is more efficient and run at 10 ms per image in generating ROIs comparing to 2.3 seconds in Fast R-CNN.
+Fast R-CNN depends on an external CPU based region proposal method which is slow. Faster R-CNN applies the same network design but replaces the region proposal method by an internal deep network. The new region proposal network (RPN) is more efficient and run at 10 ms per image in generating ROIs comparing to 2.3 seconds in Fast R-CNN.
 
-The network flow is the same but the region proposal is now replaced by a convolutional network (RPN).
+The network flow is the same but the region proposal is now replaced by a convolution network (RPN).
 
 ![faster-rcnn](images/faster-rcnn.png)
 
@@ -73,11 +73,11 @@ The network flow is the same but the region proposal is now replaced by a convol
 
 ## 2  Faster R-CNN Reimplementation and Analysis of Framework and Key Components.
 
-Based on a historial review on all relative developments, this part will implement the Faster R-CNN end to end training and explain how the key components works for the framework to demonstrate an comprehensive understanding of these techniques.
+Based on a historical review on all relative developments, this part will implement the Faster R-CNN end to end training and explain how the key components works for the framework to demonstrate an comprehensive understanding of these techniques.
 
 ### 2.1 Python Implementation of Faster R-CNN.
 
-This part of work serves as the foudation of this project, and thanks to [@rbgirshick](https://github.com/rbgirshick) for the detailed documentation, this is no much difficulty in reimplementing the work but following the [tutorial](https://github.com/rbgirshick/py-faster-rcnn) carefully, and one thing to clarify is the end to end method (not the multi-stage) is taken in all implementations in this project.
+This part of work serves as the foundation of this project, and thanks to [@rbgirshick](https://github.com/rbgirshick) for the detailed documentation, this is no much difficulty in reimplementing the work but following the [tutorial](https://github.com/rbgirshick/py-faster-rcnn) carefully, and one thing to clarify is the end to end method (not the multi-stage) is taken in all implementations in this project.
 
 And the result running on a linux sever with *Nvidia GeForce GTX 1080Ti* is attached here:
 
@@ -137,37 +137,37 @@ RoIPooling is a max pooling layer take region of interest features as input and 
 
 ![roipooling](images/roipooling.png)
 
-The regions of interest come in different sizes but the following fully connected layers take fixed size imput, thus the RoIPooling should pool the different size inputs into same fixed size output. The machnism being used is to divide the input with a grid same size as the output; for various input sizes $(H_i * W_i)$  and fixed output size $(H_o * W_o)$, a $(H_o * W_o)$ grid with cell size $(\frac{H_i }{H_o }* \frac{W_i} {W_o})$ will be applied to the inputs and  the max value in each cell will be taken as the responding value for output.
+The regions of interest come in different sizes but the following fully connected layers take fixed size input, thus the RoIPooling should pool the different size inputs into same fixed size output. The mechanism being used is to divide the input with a grid same size as the output; for various input sizes $(H_i * W_i)$  and fixed output size $(H_o * W_o)$, a $(H_o * W_o)$ grid with cell size $(\frac{H_i }{H_o }* \frac{W_i} {W_o})$ will be applied to the inputs and  the max value in each cell will be taken as the responding value for output.
 
-For example, Fast R-CNN selects the convolution layer conv5 in VGG16 to generate ROIs which later combine with the corresponding feature maps to form patches for object detection. The patches are wraped to a fixed size 7\*7 using ROI pooling and feed to fully connected layers for classification and detecting the locations.
+For example, Fast R-CNN selects the convolution layer conv5 in VGG16 to generate ROIs which later combine with the corresponding feature maps to form patches for object detection. The patches are wrapped to a fixed size 7\*7 using ROI pooling and feed to fully connected layers for classification and detecting the locations.
 
 ### 2.3 The Loss Function.
 (*The answer to question 01 is included here: "Please describe the 2 key components in the Faster R-CNN framework: the Loss Function"*)
 
 Fast and Faster R-CNN advances at the whole network (the feature extractor, the classifier, and the boundary box regressor) can be trained end-to-end with multi-task losses (classification loss and localization loss). 
 
-The so called multi-task loss is simply the sum of the classification loss and the bouding-box regression loss. Following formula: \\[L(p, u, t^u, v) = L_{cls}(p,u) + \lambda[ u \geq 1]L_{loc}(t^u,v) \\]where $L_{cls}(p,u)$ is classification loss for each RoI and using log loss $L_{cls}(p,u) = -logp_u$ and the second part is for bouding-box regression loss; the $\lambda[u\geq 1]$is a conditional factor: $\lambda= \left\{\begin{matrix}
+The so called multi-task loss is simply the sum of the classification loss and the bounding-box regression loss. Following formula: \\[L(p, u, t^u, v) = L_{cls}(p,u) + \lambda[ u \geq 1]L_{loc}(t^u,v) \\]where $L_{cls}(p,u)$ is classification loss for each RoI and using log loss $L_{cls}(p,u) = -logp_u$ and the second part is for bounding-box regression loss; the $\lambda[u\geq 1]$is a conditional factor: $\lambda= \left\{\begin{matrix}
 1, u \geq 1\\ 
 0, u < 1
-\end{matrix}\right.$ when the classifcation score u is greater or equal to one means the object is correctly classified then the bouding-box regression loss is added to the multi-task loss, however if the u is less than one and the object is not well classified the $\lambda$ is set to zero and the bounding-box loss will not be included.
+\end{matrix}\right.$ when the classification score u is greater or equal to one means the object is correctly classified then the bounding-box regression loss is added to the multi-task loss, however if the u is less than one and the object is not well classified the $\lambda$ is set to zero and the bounding-box loss will not be included.
 
 And the bounding-box regression loss is calculate with formula: \\[L_{loc}(t^u,v) = \sum_{i\in \{x,y,w,h\}}smooth_{L1}(t^u - v_i)\\] where the smooth function is: 
 
 ![formula](images/formula.gif)
 
-simply takes the ground-truth bounding box $v_i$ and compute $L_{loc}$ with the genetated $t^u$.
+simply takes the ground-truth bounding box $v_i$ and compute $L_{loc}$ with the generated $t^u$.
 
-## 3 Reimplement Faster RCNN with Pedestrian Detection Dataset.
+## 3 Re-implement Faster RCNN with Pedestrian Detection Dataset.
 
-The python faster R-CNN implementation from [@rbgirshick](https://github.com/rbgirshick) works with `Pascal Voc `dataset while this project aims at pedestrian detecting. Thus, to adapt the existed implementation to pedestrian dataset like `Caltech, Kitti and INRIA` is the essential part for implementing. And in this report, how to prepare the caltech dataset will first be introduced. And how to modify the network model will then be explained.  The last topic will be the performance analysis and demonstration of the trained network.
+The python faster R-CNN implementation from [@rbgirshick](https://github.com/rbgirshick) works with `Pascal Voc `dataset while this project aims at pedestrian detecting. Thus, to adapt the existed implementation to pedestrian dataset like `Caltech, Kitti and INRIA` is the essential part for implementing. And in this report, how to prepare the Caltech dataset will first be introduced. And how to modify the network model will then be explained.  The last topic will be the performance analysis and demonstration of the trained network.
 
 And this part of work is heavily based on [py-faster-rcnn-caltech-pedestrian](https://github.com/govindnh4cl/py-faster-rcnn-caltech-pedestrian).
 
 ### 3.1 Prepare the Dataset: Caltech.
 
-The [Caltech](http://www.vision.caltech.edu/Image_Datasets/CaltechPedestrians/) pedestrain dataset consists of approximately 10 hours of 640x480 30Hz video taken from a vehicle driving through regular traffic in an urban environment. About 250,000 frames (in 137 approximately minute long segments) with a total of 350,000 bounding boxes and 2300 unique pedestrians were annotated. The annotation includes temporal correspondence between bounding boxes and detailed occlusion labels. 
+The [Caltech](http://www.vision.caltech.edu/Image_Datasets/CaltechPedestrians/) pedestrian dataset consists of approximately 10 hours of 640x480 30Hz video taken from a vehicle driving through regular traffic in an urban environment. About 250,000 frames (in 137 approximately minute long segments) with a total of 350,000 bounding boxes and 2300 unique pedestrians were annotated. The annotation includes temporal correspondence between bounding boxes and detailed occlusion labels. 
 
-In order to use Caltech dataset for Faster R-CNN,  3 essential parts of data need to be obtained/converted from the raw data: Annotations, ImageSets, JPEGImages, which are the label data, text file with images name as lists and images in jpg format respectively. In this project, 8 substeps are implemented to obtain the required data. 
+In order to use Caltech dataset for Faster R-CNN,  3 essential parts of data need to be obtained/converted from the raw data: Annotations, ImageSets, JPEGImages, which are the label data, text file with images name as lists and images in jpg format respectively. In this project, 8 sub-steps are implemented to obtain the required data. 
 
 #### 3.1.1 Create directory structure.
 
@@ -185,7 +185,7 @@ mkdir data/ImageSets     # Store image name txt file
 
 #### 3.1.2 Get the video sequences and annotations.
 
-The dataset can be downloaded from the offical site `https://www.vision.caltech.edu/Image_Datasets/CaltechPedestrians/datasets/USA/setXX.tar` with commands:
+The dataset can be downloaded from the official site `https://www.vision.caltech.edu/Image_Datasets/CaltechPedestrians/datasets/USA/setXX.tar` with commands:
 
 ```Shell
 wget https://www.vision.caltech.edu/Image_Datasets/CaltechPedestrians/datasets/USA/set00.tar
@@ -225,7 +225,7 @@ tar -xf downloaded/set09.tar --directory unzip/
 tar -xf downloaded/set10.tar --directory unzip/
 ```
 
-The  `caltech/downloaded` diretory can be removed with command:
+The  `caltech/downloaded` directory can be removed with command:
 
 ```Shell
 rm -r downloaded
@@ -246,7 +246,7 @@ caltech/unzip/set00/V010.seq
 
 #### 3.1.4 Extract the `annotations.zip` file.
 
-Unzip and extract `caltech/annotations.zip` to `caltech/data/annotations` dirctory; and ten `setxx` directory will be placed in `caltech/data/annotations`.
+Unzip and extract `caltech/annotations.zip` to `caltech/data/annotations` directory; and ten `setxx` directory will be placed in `caltech/data/annotations`.
 
 ```Shell
 cd data
@@ -499,9 +499,9 @@ $caltech/data/ImageSets/train_1x.txt
 $caltech/data/ImageSets/test_1x.txt
 ```
 
-#### 3.1.8 Create symlinks for the dataset.
+#### 3.1.8 Create syn links for the dataset.
 
-Then build softlink to the prepared dataset in the `caltech/data` directory with commands:
+Then build soft link to the prepared dataset in the `caltech/data` directory with commands:
 
 ```Shell
 cd caltech/data
@@ -534,7 +534,7 @@ cd ../
 
 #### 3.2.1 Build Caffe with Support to Python Layer.
 
-If the Caffe is built with the standard process, one issue ([can be refered to offical faster rcnn git issue 31](https://github.com/rbgirshick/fast-rcnn/issues/31))  shows like `Check failed: registry.count(type) == 1 (0 vs. 1) Unknown layer type: Python` will occur and the solution is to modify the Makefile.config file by uncomment `WITH_PYTHON_LAYER := 1` in the Makefile.config and remake caffe.
+If the Caffe is built with the standard process, one issue ([can be referred to official faster rcnn git issue 31](https://github.com/rbgirshick/fast-rcnn/issues/31))  shows like `Check failed: registry.count(type) == 1 (0 vs. 1) Unknown layer type: Python` will occur and the solution is to modify the Makefile.config file by uncomment `WITH_PYTHON_LAYER := 1` in the Makefile.config and remake Caffe.
 
 ```shell
 make clear
@@ -553,7 +553,7 @@ File "/home/deeplearning_3/Aven_caltech/py-faster-rcnn-caltech-pedestrian/tools/
 File "/home/deeplearning_3/Aven_caltech/py-faster-rcnn-caltech-pedestrian/tools/../lib/fast_rcnn/train.py", line 73, in snapshot self.bbox_stds[:, np.newaxis])
 ValueError: operands could not be broadcast together with shapes (84,4096) (8,1)
 ``` 
-This is also an issue can be found on git issues([issue 37](https://github.com/rbgirshick/fast-rcnn/issues/37)) and the solution is relatively complecated. In short, the main issue is caltech dataset has only two classes comparing with 21 from the original pascal voc dataset, the output layers like `cls_score` and `bbox_pred` have to be modifited to fit the dataset; and for this case, the output params for `cls_score` should be 2 and 8 for `bbox_pred` layer. Another further work is to modify the layer name in prototxt and the croresponding class/function name in python layer definition code(I don't fully get the reason but it turns out to be essential).
+This is also an issue can be found on git issues([issue 37](https://github.com/rbgirshick/fast-rcnn/issues/37)) and the solution is relatively complicated. In short, the main issue is Caltech dataset has only two classes comparing with 21 from the original pascal voc dataset, the output layers like `cls_score` and `bbox_pred` have to be modified to fit the dataset; and for this case, the output params for `cls_score` should be 2 and 8 for `bbox_pred` layer. Another further work is to modify the layer name in prototxt and the corresponding class/function name in python layer definition code(I don't fully get the reason but it turns out to be essential).
 
 Three essential files here need to be modified;
 
@@ -565,7 +565,7 @@ Three essential files here need to be modified;
 * `models/pascal_voc/VGG16/faster_rcnn_end2end/test.prototxt`; Change the name for `cls_score` and `bbox_pred`  layers to a new name like `new_cls_score` and `new_bbox_pred` .
 * `lib/fast_rcnn/test.py`; Change the function name/ parameter name from `cls_score` and `bbox_pred`  to  `new_cls_score` and `new_bbox_pred`.
 
-The last error will happpen after the network is trained and right before the testing is 
+The last error will happen after the network is trained and right before the testing is 
 
 ```shell
 test_net.py: error: argument --net: expected one argument
@@ -574,14 +574,14 @@ this is because  in the `.sh` code there is one more argument required to be pas
  
 Change the `ITERS=80000` in `experiments/scripts/faster_rcnn_end2end.sh`  to control training iterations, it's good practice to test with a small iters number like `ITERS=100` and move to `ITERS=80000` for final training.
 
-*if simply wants to train over caltech, the following step is not nessissary; and the following command should start the training properly:*
+*if simply wants to train over Caltech, the following step is not necessary; and the following command should start the training properly:*
 
 ```shell
 ./experiments/scripts/faster_rcnn_end2end.sh 0 VGG_16 caltech \
 --set EXP_DIR seed_rng1701 RNG_SEED 1701
 ```
 
-In order to keep both pascal_voc and caltech and train them seprately,  before edit the prototxt file:
+In order to keep both pascal_voc and caltech and train them separately,  before edit the prototxt file:
 
 * First `cp -r pascal_voc caltech` and modify `lib/fast_rcnn/config.py` to use `caltech`:
 
@@ -618,7 +618,7 @@ The log file is attached at the end of this report, and some of the essential in
 
 This part of work is heavily based on [mAP (mean Average Precision) for Object Detection](https://medium.com/@jonathan_hui/map-mean-average-precision-for-object-detection-45c121a31173).
 
-In an Object Detection Problem, for example, given an images, find the objects and locate their position and classify them. And object detection models are usually trained on a fixed set of classes, so the model would locate and classify only those classes in the image, and also the location of the object is generally in the form of a bounding box. So, object detection involves both localisation of the object in the image and classifying that object. Mean Average Precision aka mAP, as described below, is particularly used for algorithms predicting the locations of the objects along with the classes. 
+In an Object Detection Problem, for example, given an images, find the objects and locate their position and classify them. And object detection models are usually trained on a fixed set of classes, so the model would locate and classify only those classes in the image, and also the location of the object is generally in the form of a bounding box. So, object detection involves both localization of the object in the image and classifying that object. Mean Average Precision aka mAP, as described below, is particularly used for algorithms predicting the locations of the objects along with the classes. 
 
 ##### 3.3.1.1 Image Data for Object Detection.
 
@@ -626,7 +626,7 @@ For any algorithm, the metrics are always evaluated in comparison to the ground 
 
 A sample data:
 
-![mapexample](images/mapexample.png)
+![map example](images/mapexample.png)
 
 |Class	|X coordinate	|Y coordinate	|Box Width	|Box Height|
 |----------------|---------------|-----------|---|---|
@@ -654,7 +654,7 @@ For every image, ground truth data tells us the number of actual objects of give
 
 ##### 3.3.1.4 Calculating the Mean Average Precision
 
-When testing, compute precision and recall (for each class) accumulately and draw percision over recall graph:
+When testing, compute precision and recall (for each class) accumulatively and draw precision over recall graph:
 
 ![pr](images/pr.png)
 
@@ -670,7 +670,7 @@ Final mAP:
 
 To demonstrate the train model over sample images on the headless server, the output images can not be displayed but saved . And some  modifications have to be done to the `demo.py` code.
 
-Partical python code attached here:
+Partial python code attached here:
 
 ```python
 def vis_detections(im,image_name, class_name, dets, thresh=0.5):
@@ -708,7 +708,7 @@ def vis_detections(im,image_name, class_name, dets, thresh=0.5):
     fig.savefig(output)
     plt.close(fig)
 ```
-Demo images:er
+Demo images:
 
 | |  | 
 |----------------|---------------|

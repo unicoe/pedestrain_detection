@@ -4,8 +4,19 @@
 
 Find log file at */home/deeplearning_3/Aven/py-faster-rcnn/experiments/logs*
 
-./experiments/scripts/faster_rcnn_end2end.sh 0 VGG_CNN_M_1024 caltech \
+./experiments/scripts/faster_rcnn_end2end.sh 0 VGG_16 caltech \
 --set EXP_DIR seed_rng1701 RNG_SEED 1701
+
+time ./tools/train_net.py --gpu 0 \
+  --solver models/caltech/VGG16/faster_rcnn_end2end/solver.prototxt \
+  --weights data/imagenet_models/VGG16.v2.caffemodel \
+  --imdb caltech_train_1x \
+  --iters 80000 \
+  --cfg experiments/cfgs/faster_rcnn_end2end.yml
+
+
+
+
 
 Fixing bug:
 
