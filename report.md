@@ -1,7 +1,5 @@
 # Pedestrian Detection with Faster-RCNN
 
-## 0 Overview
-
 ## 1 History and Design Evolution of R-CNN.
 
 Since AlexNet acheieved its great sucess at 2012 in ILSVRC challenge, the application of the Converlutional Neural Network for image classification has dominated the field of both research and industry.  Within this topic, a brief review of the developments on object detection techniques will be presented; region based object detectors including R-CNN, Fast R-CNN, Faster R-CNN and R-FCN will be discussed. To sort out the tech-developments through history will not stay as a review only but also provide a better insight of future. 
@@ -618,7 +616,7 @@ The log file is attached at the end of this report, and some of the essential in
 #### 3.3.1 mAP(Mean Average Precision).
 (*The answer to question 02 is provided here: "Please describe the object detection performance metric, mAP (Mean Average Precision), and explain why it can well reflect the object detection accuracy."*)
 
-This part of work is heavily on [Measuring Object Detection models - mAP - What is Mean Average Precision?](http://tarangshah.com/blog/2018-01-27/what-is-map-understanding-the-statistic-of-choice-for-comparing-object-detection-models/)
+This part of work is heavily based on [mAP (mean Average Precision) for Object Detection](https://medium.com/@jonathan_hui/map-mean-average-precision-for-object-detection-45c121a31173).
 
 In an Object Detection Problem, for example, given an images, find the objects and locate their position and classify them. And object detection models are usually trained on a fixed set of classes, so the model would locate and classify only those classes in the image, and also the location of the object is generally in the form of a bounding box. So, object detection involves both localisation of the object in the image and classifying that object. Mean Average Precision aka mAP, as described below, is particularly used for algorithms predicting the locations of the objects along with the classes. 
 
@@ -664,6 +662,11 @@ the area under the precision-recall curve is the final AP for the class. And the
 
 #### 3.3.2 Final mAP performance and demo samples.
 (*The answer to question 03 is provided here: "Please train and test the Fast R-CNN framework on one of the existing pedestrian detection datasets, and report the final mAP performance that you have achieved.  The dataset could be Caltech, INRIA, KITTI . Please also report some pedestrian detection examples by including the images and bounding boxes."*)
+Final mAP:
+
+```shell
+
+```
 
 To demonstrate the train model over sample images on the headless server, the output images can not be displayed but saved . And some  modifications have to be done to the `demo.py` code.
 
@@ -705,8 +708,18 @@ def vis_detections(im,image_name, class_name, dets, thresh=0.5):
     fig.savefig(output)
     plt.close(fig)
 ```
+Demo images:er
+
+| |  | 
+|----------------|---------------|
+|![01](images/01.png)|![02](images/02.png)|
+|![03](images/03.png)|![04](images/04.png)|
+|![05](images/05.png)|![06](images/06.png)|
 
 ## 4. Advanced Approach and Improvement Based on Faster R-CNN
 (*The answer to question 04 is provided here: "Propose your own method to further improve the pedestrian detection performance based on the Fast R-CNN framework."*)
 
-This part of work is heavily based on []()
+This part of work is heavily based on [faster-rcnn-resnet](https://github.com/Eniac-Xie/faster-rcnn-resnet).
+
+
+
