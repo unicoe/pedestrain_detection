@@ -84,7 +84,7 @@ This part of work serves as the foudation of this project, and thanks to [@rbgir
 And the result running on a linux sever with *Nvidia GeForce GTX 1080Ti* is attached here:
 
 ```shell
-OC07 metric? Yes
+VOC07 metric? Yes
 AP for aeroplane = 0.6580
 AP for bicycle = 0.6718
 AP for bird = 0.5780
@@ -574,12 +574,12 @@ test_net.py: error: argument --net: expected one argument
 ```
 this is because  in the `.sh` code there is one more argument required to be passed in, simply delete or comment the last line `  \${EXTRA_ARGS}`, the forward slash at the end of code `  --cfg experiments/cfgs/faster_rcnn_end2end.yml ` should also be removed, can fix the issue.
  
-Change the `ITERS=80000` in `experiments/scripts/faster_rcnn_end2end.sh` or other proper numbers, it's good practice to test with a small iters number like `ITERS=80000`.
+Change the `ITERS=80000` in `experiments/scripts/faster_rcnn_end2end.sh`  to control training iterations, it's good practice to test with a small iters number like `ITERS=100` and move to `ITERS=80000` for final training.
 
 *if simply wants to train over caltech, the following step is not nessissary; and the following command should start the training properly:*
 
 ```shell
-./experiments/scripts/faster_rcnn_end2end.sh 0 VGG_16 pascal_voc \
+./experiments/scripts/faster_rcnn_end2end.sh 0 VGG_16 caltech \
 --set EXP_DIR seed_rng1701 RNG_SEED 1701
 ```
 
@@ -608,23 +608,105 @@ PT_DIR="caltech"
 Everything should be set and the model training starts here.
 
 ### 3.3 Performance and Evaluation: mAp and demos.
+
 The log file is attached at the end of this report, and some of the essential info is listed here.
+
+``` shell
+
+```
+
 #### 3.3.1 mAP(Mean Average Precision).
 (*The answer to question 02 is provided here: "Please describe the object detection performance metric, mAP (Mean Average Precision), and explain why it can well reflect the object detection accuracy."*)
+
+This part of work is heavily on [Measuring Object Detection models - mAP - What is Mean Average Precision?](http://tarangshah.com/blog/2018-01-27/what-is-map-understanding-the-statistic-of-choice-for-comparing-object-detection-models/)
+
+In an Object Detection Problem, for example, given an images, find the objects and locate their position and classify them. And object detection models are usually trained on a fixed set of classes, so the model would locate and classify only those classes in the image, and also the location of the object is generally in the form of a bounding box. So, object detection involves both localisation of the object in the image and classifying that object. Mean Average Precision aka mAP, as described below, is particularly used for algorithms predicting the locations of the objects along with the classes. 
+
+##### 3.3.1.1 Image Data for Object Detection.
+
+For any algorithm, the metrics are always evaluated in comparison to the ground truth data; the ground truth information for the Training, Validation and Test datasets. For object detection problems, the ground truth includes the image, the classes of the objects and the true bounding boxes of each of the objects in that image. 
+
+A sample data:
+
+![mapexample](images/mapexample.png)
+
+|Class	|X coordinate	|Y coordinate	|Box Width	|Box Height|
+|----------------|---------------|-----------|---|---|
+|Dog	|100	|600	|150	|100|
+|Horse	|700	|300	|200	|250|
+|Person	|400	|400	|100	|500|
+
+##### 3.3.1.2 IoU aka Intersection over Union.
+
+The model would return lots of predictions, but out of those, most of them would have a very low correctness score associated, hence only predictions with correctness score above a threshold will be considered. The metric that tells the correctness of a given bounding box is the - IoU - Intersection over Union. 
+
+Intersection over Union is a ratio between the intersection and the union of the predicted boxes and the ground truth boxes. To get the intersection and union values, first overlay the prediction boxes over the ground truth boxes, and then the area overlapping the prediction box and ground truth box is the intersection area and the total joint area is the union. For example:
+
+![iou](images/iou.png)
+
+The IoU will then be calculated like this:
+
+![cal_iou](images/cal_iou.png)
+
+##### 3.3.1.3 Identifying correct detections and calculating precision and recall.
+
+For calculating Precision and Recall, as with all machine learning problems, True Positives, False Positives, True Negatives and False Negatives should be identified. IoU is used to get True Positives and False Positives; if the detection(a Positive) is correct(True) or not(False),  take threshold as 0.5 for IoU, if the IoU is > 0.5, it is considered a True Positive, else it is considered a false positive. The IoU = 0.5 is also the PASCAL VOC metric. Since every part of the image where doesn't predict an object is considered a negative, for calculating Recall, just count the Negatives. But measuring “True” negatives is a bit futile. So only measures “False” Negatives which are objects that model missed out. Also, another factor that is taken into consideration is the confidence that the model reports for every detection. Varying the confidence threshold can change whether a predicted box is a Positive or Negative. Basically, all predictions(Box+Class) above the threshold are considered Positive boxes and all below it are Negatives.
+
+For every image, ground truth data tells us the number of actual objects of given classes in that image.By calculating the IoU with the Ground truth for every Positive detection box that the model reports and compare with IoU threshold(like 0.5), the number of correct detections (TP, True Positives) for each class in an image can be calculated. This is used to calculate the Precision for each class  $Precision = {TP\over TP+FP}$ where TP + FP is simply the count of all predictions. And the Recall of the model for cetain class is calculated by formula: $Recall = {TP \over TP+FN}$
+
+##### 3.3.1.4 Calculating the Mean Average Precision
+
+When testing, compute precision and recall (for each class) accumulately and draw percision over recall graph:
+
+![pr](images/pr.png)
+
+the area under the precision-recall curve is the final AP for the class. And the mean average  precision is the average mean of all APs.
 
 #### 3.3.2 Final mAP performance and demo samples.
 (*The answer to question 03 is provided here: "Please train and test the Fast R-CNN framework on one of the existing pedestrian detection datasets, and report the final mAP performance that you have achieved.  The dataset could be Caltech, INRIA, KITTI . Please also report some pedestrian detection examples by including the images and bounding boxes."*)
 
 To demonstrate the train model over sample images on the headless server, the output images can not be displayed but saved . And some  modifications have to be done to the `demo.py` code.
 
-Python code attached here:
+Partical python code attached here:
 
 ```python
+def vis_detections(im,image_name, class_name, dets, thresh=0.5):
+    """Draw detected bounding boxes."""
+    inds = np.where(dets[:, -1] >= thresh)[0]
+    if len(inds) == 0:
+        return
 
+    im = im[:, :, (2, 1, 0)]
+    fig, ax = plt.subplots(figsize=(12, 12))
+    ax.imshow(im, aspect='equal')
+    for i in inds:
+        bbox = dets[i, :4]
+        score = dets[i, -1]
+
+        ax.add_patch(
+            plt.Rectangle((bbox[0], bbox[1]),
+                          bbox[2] - bbox[0],
+                          bbox[3] - bbox[1], fill=False,
+                          edgecolor='red', linewidth=3.5)
+            )
+        ax.text(bbox[0], bbox[1] - 2,
+                '{:s} {:.3f}'.format(class_name, score),
+                bbox=dict(facecolor='blue', alpha=0.5),
+                fontsize=14, color='white')
+
+    ax.set_title(('{} detections with '
+                  'p({} | box) >= {:.1f}').format(class_name, class_name,
+                                                  thresh),
+                  fontsize=14)
+    plt.axis('off')
+    plt.tight_layout()
+    plt.draw()
+    output = "output-{}.png".format(image_name.split(".",1)[0])
+    fig.savefig(output)
+    plt.close(fig)
 ```
-
-
-### 3.4 Implement Faster R-CNN on Kitti Datasets.
 
 ## 4. Advanced Approach and Improvement Based on Faster R-CNN
 (*The answer to question 04 is provided here: "Propose your own method to further improve the pedestrian detection performance based on the Fast R-CNN framework."*)
+
+This part of work is heavily based on []()
