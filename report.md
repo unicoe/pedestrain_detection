@@ -153,10 +153,11 @@ The so called multi-task loss is simply the sum of the classification loss and t
 0, u < 1
 \end{matrix}\right.$ when the classifcation score u is greater or equal to one means the object is correctly classified then the bouding-box regression loss is added to the multi-task loss, however if the u is less than one and the object is not well classified the $\lambda$ is set to zero and the bounding-box loss will not be included.
 
-And the bounding-box regression loss is calculate with formula: \\[L_{loc}(t^u,v) = \sum_{i\in \{x,y,w,h\}}smoothL_1(t^u - v_i)\\] where the smooth function is: \\[smooth_L_1(x) = \left\{\begin{matrix}
-0.5x^2, \left |x  \right |<1\\ 
-\left |x  \right |-0.5, otherwise
-\end{matrix}\right\\] simply takes the ground-truth bounding box $v_i$ and compute $L_{loc}$ with the genetated $t^u$.
+And the bounding-box regression loss is calculate with formula: \\[L_{loc}(t^u,v) = \sum_{i\in \{x,y,w,h\}}smooth_{L1}(t^u - v_i)\\] where the smooth function is: 
+
+![formula](images/formula.gif)
+
+simply takes the ground-truth bounding box $v_i$ and compute $L_{loc}$ with the genetated $t^u$.
 
 ## 3 Reimplement Faster RCNN with Pedestrian Detection Dataset.
 
@@ -558,11 +559,12 @@ This is also an issue can be found on git issues([issue 37](https://github.com/r
 
 Three essential files here need to be modified;
 
-* `models/VGG16/faster_rcnn_end2end/train.prototxt`; Change the output params for `cls_score` and `bbox_pred`  layers.
-* `models/VGG16/faster_rcnn_end2end/train.prototxt`; Change the name for `cls_score` and `bbox_pred`  layers to a new name like `new_cls_score` and `new_bbox_pred` .
+* `models/pascal_voc/VGG16/faster_rcnn_end2end/train.prototxt`; Change the output params for `cls_score` and `bbox_pred`  layers: `num_output: 2` and `num_output: 8`.
+*  `models/pascal_voc/VGG16/faster_rcnn_end2end/train.prototxt`; Change the output params for `roi-data` layer: `num_classes: 2`
+* `models/pascal_voc/VGG16/faster_rcnn_end2end/train.prototxt`; Change the name for `cls_score` and `bbox_pred`  layers to a new name like `new_cls_score` and `new_bbox_pred` .
 * `lib/fast_rcnn/train.py`; Change the function name/ parameter name from `cls_score` and `bbox_pred`  to  `new_cls_score` and `new_bbox_pred`.
-* `models/VGG16/faster_rcnn_end2end/test.prototxt`; Change the output params for `cls_score` and `bbox_pred`  layers.
-* `models/VGG16/faster_rcnn_end2end/test.prototxt`; Change the name for `cls_score` and `bbox_pred`  layers to a new name like `new_cls_score` and `new_bbox_pred` .
+* `models/pascal_voc/VGG16/faster_rcnn_end2end/test.prototxt`; Change the output params for `cls_score` and `bbox_pred`  layers: `num_output: 2` and `num_output: 8`.
+* `models/pascal_voc/VGG16/faster_rcnn_end2end/test.prototxt`; Change the name for `cls_score` and `bbox_pred`  layers to a new name like `new_cls_score` and `new_bbox_pred` .
 * `lib/fast_rcnn/test.py`; Change the function name/ parameter name from `cls_score` and `bbox_pred`  to  `new_cls_score` and `new_bbox_pred`.
 
 The last error will happpen after the network is trained and right before the testing is 
@@ -570,8 +572,38 @@ The last error will happpen after the network is trained and right before the te
 ```shell
 test_net.py: error: argument --net: expected one argument
 ```
+this is because  in the `.sh` code there is one more argument required to be passed in, simply delete or comment the last line `  \${EXTRA_ARGS}`, the forward slash at the end of code `  --cfg experiments/cfgs/faster_rcnn_end2end.yml ` should also be removed, can fix the issue.
+ 
+Change the `ITERS=80000` in `experiments/scripts/faster_rcnn_end2end.sh` or other proper numbers, it's good practice to test with a small iters number like `ITERS=80000`.
 
- this is because  in the `.sh` code there is one more argument required to be passed in, simply delete or comment the last line `  \${EXTRA_ARGS}`, the forward slash at the end of code `  --cfg experiments/cfgs/faster_rcnn_end2end.yml ` should also be removed, can fix the issue.
+*if simply wants to train over caltech, the following step is not nessissary; and the following command should start the training properly:*
+
+```shell
+./experiments/scripts/faster_rcnn_end2end.sh 0 VGG_16 pascal_voc \
+--set EXP_DIR seed_rng1701 RNG_SEED 1701
+```
+
+In order to keep both pascal_voc and caltech and train them seprately,  before edit the prototxt file:
+
+* First `cp -r pascal_voc caltech` and modify `lib/fast_rcnn/config.py` to use `caltech`:
+
+```python
+# Model directory
+__C.MODELS_DIR = osp.abspath(osp.join(__C.ROOT_DIR, 'models', 'caltech'))
+```
+
+* Then modify `experiments/scripts/faster_rcnn_end2end.sh` to use `caltech`:
+
+```shell
+PT_DIR="caltech"
+```
+
+*  and for trainning command pass in prameters like:
+
+```shell
+./experiments/scripts/faster_rcnn_end2end.sh 0 VGG_16 caltech \
+--set EXP_DIR seed_rng1701 RNG_SEED 1701
+```
 
 Everything should be set and the model training starts here.
 
