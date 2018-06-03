@@ -2,9 +2,9 @@
 
 ## Overview.
 
-In this project, a comprehensive journey on object detection from days before region based convolution neural network to RNN, then Fast R-CNN and eventually Faster R-CNN is taken. In [History and Design Evolution of R-CNN](1-History-and-Design-Evolution-of-R-CNN]), a brief description and analysis of all key advancements by its own time are included. Before jumping into region based object detectors, old techniques like sliding windows and selective search are demonstrate with a high level understanding. Region based CNNs are then introduced, they, at least the names, sound similar and fight each other for the title of fastest speed and best accuracy but indeed are developed cumulatively; one small step at a time and all gains together result in great achievement.
+In this project, a comprehensive journey on object detection from days before region based convolution neural network to RNN, then Fast R-CNN and eventually Faster R-CNN is taken. In [History and Design Evolution of R-CNN](#1-History-and-Design-Evolution-of-R-CNN]), a brief description and analysis of all key advancements by its own time are included. Before jumping into region based object detectors, old techniques like sliding windows and selective search are demonstrate with a high level understanding. Region based CNNs are then introduced, they, at least the names, sound similar and fight each other for the title of fastest speed and best accuracy but indeed are developed cumulatively; one small step at a time and all gains together result in great achievement.
 
-This report is also a documentation of a Faster R-CNN python re-implementation and Faster R-CNN training on Caltech dataset with `end2end` mechanism and pre-trained VGG16, a detailed instruction on how to prepare the dataset for Faster R-CNN and how to modify the network is included. 
+This report is also a documentation of a Faster R-CNN python re-implementation and Faster R-CNN training on Caltech dataset with `end2end` mechanism and pre-trained VGG16, a detailed instruction on how to prepare the dataset for Faster R-CNN and how to modify the network is included. The attempt to re-implement Faster R-CNN is made and documented in [Faster R-CNN Reimplementation and Analysis of Framework and Key Components](#2-Faster-R-CNN-Reimplementation-and-Analysis-of-Framework-and-Key-Components). Beyond the official re-implementation over Pascal VOC dataset, this project include the efforts to train the Faster R-CNN on pedestrian detection dataset - Caltech; the dataset pre-processing is well documented in [Prepare the Dataset: Caltech](#31-Prepare-the-Dataset-Caltech) and the network modification instruction is in [Model Tuning to Fit Caltech Dataset](#32-Model-Tuning-to-Fit-Caltech-Dataset). The final result of the trained Faster R-CNN on Caltech is not as well as expected but the possible reasons and methods towards improvements are proposed in [Result Evaluation](#332-Result-Evaluation).
 
 ## 1 History and Design Evolution of R-CNN.
 
@@ -767,7 +767,7 @@ The `caffe-fast-rcnn` being used here is different from the one in `py-faster-rc
 	Take the the same dataset built previously and soft link the `caltech` folder to `data` folder. And also take the `caltech.py` code as data precessing code.
 
 * Network Modification.
-	Go through the same process as in [Modify the Network to Fit Caltech Dataset](322-Modify-the-Network-to-Fit-Caltech-Dataset).
+	Go through the same process as in [Modify the Network to Fit Caltech Dataset](#322-Modify-the-Network-to-Fit-Caltech-Dataset).
 
 The result from this model is like:
 
@@ -785,12 +785,24 @@ Results:
 
 [publication R-FCN](https://arxiv.org/pdf/1605.06409)
 
+In Faster R-CNN, the detector applies multiple fully connected layers to make predictions. But with 2,000 ROIs per image, it's computationally expensive. Fast R-CNN computes the feature maps from the whole image once. It then derives the region proposals (ROIs) from the feature maps directly and that cuts down the process significantly as there are many ROIs. Following the same logic, R-FCN improves speed by reducing the amount of work needed for each ROI. The region-based feature maps are independent of ROIs and can be computed outside each ROI. The remaining work is much simpler and therefore R-FCN is faster than Faster R-CNN.
+
+
 [publication FPN](https://arxiv.org/pdf/1612.03144)
 
-
+Feature Pyramid Network (FPN) is a feature extractor designed for such pyramid concept with accuracy and speed. It replaces the feature extractor of detectors like Faster R-CNN and generates multiple feature map layers (multi-scale feature maps) with better quality information than the regular feature pyramid for object detection. However, processing multiple scale images is time consuming and the memory demand is too high to be trained end-to-end simultaneously. Hence, it's used only in inference to push accuracy, when speed is not a concern.
 
 ## 5.Conclusion.
 
-An attempt to re-implement Faster R-CNN is made and documented in [Faster R-CNN Reimplementation and Analysis of Framework and Key Components](2-Faster-R-CNN-Reimplementation-and-Analysis-of-Framework-and-Key-Components). Beyond the official re-implementation over Pascal VOC dataset, this project include the efforts to train the Faster R-CNN on pedestrian detection dataset - Caltech; the dataset pre-processing is well documented in [Prepare the Dataset: Caltech](31-Prepare-the-Dataset-Caltech) and the network modification instruction is in [Model Tuning to Fit Caltech Dataset](32-Model-Tuning-to-Fit-Caltech-Dataset). The final result of the trained Faster R-CNN on Caltech is not as well as expected but the possible reasons and methods towards improvements are proposed in [Result Evaluation](332-Result-Evaluation).
+We start our discussion in object detection with sliding windows over an image. To improve speed, we either reduce the amount of windows or reduce works needed for each ROI (i.e. move works outside of the for-loop). R-CNN uses a region proposal network to reduce the amount of windows (ROIs) to about 2000. Fast R-CNN reduces the amount of works for each ROI by using the feature maps instead of the image patches to detect objects. This saves us time from applying feature extractions 2000 times. However, region proposal takes time. Faster R-CNN replaces the external region proposal method by a convolution network and reduces the inference time from 2.3s to 0.3s. Faster R-CNN also introduces anchors so our predictions are more diverse and the model is much easier to train. The journey to cut work per ROI is not finished. R-FCN computes position-sensitive score maps independent of ROIs. This map scores the chance of finding a certain part of a class object. The probability of finding an object is simply average those score.
 
+However, even R-FCN is faster, it can be less accurate than Faster R-CNN. But why we need 2-stage computation, one for ROIs and one for object detection. Single shot detector removes the need to have individual computations for each ROIs. Instead, it predicts both boundary boxes and classes in a single shot simultaneously.
+
+Both SSD and YOLO are single shot detectors. Both use convolutional layers to extract features followed by a convolution filter to make predictions. Both use relatively low-resolution feature maps for object detection. Therefore, their accuracy is usually lower than region based detectors because they perform much worse for small objects. To remedy the problem, single shoot detectors add higher resolution feature maps to detect objects. However, high-resolution feature maps contain fewer high-level structures and therefore object prediction is less accurate. FPN mitigates that by deriving the higher resolution feature map from the original feature map and the upsampled lower resolution maps. This adds high-level structure information while retains more accurate spatial location information. The overall accuracy is improved since it detects objects at different scale better.
+
+During training, we are dealing with many predictions on the image background rather than real objects. We train the model well to detect background but not necessary on real objects. Focal loss reduces the importance of classes that are already trained well. By combining a more complex feature extractor, FPN, and the Focal loss, RetinaNet achieves some of the most accurate results for object detection.
+
+The difference between detectors is narrowing. Single shot uses more complex designs to make it more accurate and region base detectors streamline the operation to make it faster. YOLO, for example, has incorporate features used in other types of detector. Eventually, the significant difference may not be in the basic concept of the models but on the implementation details.
+
+Detectors, like region-based detectors or single shot detectors, start from different paths but look much similar now as they fight for the title of the fastest and most accurate detector. In fact, some of the performance difference may be originated from the subtle design and implementation choices rather than on the merits of the model. In the Part 3 here, we will cover some of those design choices followed by some benchmarks done by Google Research. Then we will conclude our series by summarizing how we get here and what the lessons learn so far.
 
