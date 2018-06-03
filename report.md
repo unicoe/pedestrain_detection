@@ -1,5 +1,11 @@
 # Pedestrian Detection with Faster-RCNN
 
+## Overview.
+
+In this project, a comprehensive journey on object detection from days before region based convolution neural network to RNN, then Fast R-CNN and eventually Faster R-CNN is taken. In [History and Design Evolution of R-CNN](1-History-and-Design-Evolution-of-R-CNN]), a brief description and analysis of all key advancements by its own time are included. Before jumping into region based object detectors, old techniques like sliding windows and selective search are demonstrate with a high level understanding. Region based CNNs are then introduced, they, at least the names, sound similar and fight each other for the title of fastest speed and best accuracy but indeed are developed cumulatively; one small step at a time and all gains together result in great achievement.
+
+This report is also a documentation of a Faster R-CNN python re-implementation and Faster R-CNN training on Caltech dataset with `end2end` mechanism and pre-trained VGG16, a detailed instruction on how to prepare the dataset for Faster R-CNN and how to modify the network is included. 
+
 ## 1 History and Design Evolution of R-CNN.
 
 Since AlexNet achieved its great success at 2012 in ILSVRC challenge, the application of the Convolution Neural Network for image classification has dominated the field of both research and industry.  Within this topic, a brief review of the developments on object detection techniques will be presented; region based object detectors including R-CNN, Fast R-CNN, Faster R-CNN and R-FCN will be discussed. To sort out the tech-developments through history will not stay as a review only but also provide a better insight of future. 
@@ -129,6 +135,8 @@ Results:
 0.605
 ~~~~~~~~
 ```
+
+This the mAP here matches the result presented in the Faster R-CNN paper, which is `mAP = 59.2% for RPN + VGG network`. Therefore, the Faster R-CNN is successfully re-implemented.
 
 ### 2.2 The RoIPooling Layer for Fast and Faster R-CNN.
 (*The answer to question 01 is included here: "Please describe the 2 key components in the Faster R-CNN framework: the RoIPooling layer"*)
@@ -399,7 +407,7 @@ Generation of 10x training set(optional):
 (`print_names = 1; sets = ['set00', 'set01', 'set02', 'set03', 'set04', 'set05']; interval = 3;`)
 
 ```Shell
-$python convert_seqs.py > ImageSets/train_10x.txt
+$python convert_seqs.py > ImageSets/test_10x.txt
 ```
 The `unzip` directory can be deleted now. And the responding directory presents as:
 
@@ -599,7 +607,7 @@ PT_DIR="caltech"
 *  and for trainning command pass in prameters like:
 
 ```shell
-./experiments/scripts/faster_rcnn_end2end.sh 0 VGG_16 caltech \
+./experiments/scripts/max_faster_rcnn_end2end.sh 0 VGG_16 caltech \
 --set EXP_DIR seed_rng1701 RNG_SEED 1701
 ```
 
@@ -610,7 +618,23 @@ Everything should be set and the model training starts here.
 The log file is attached at the end of this report, and some of the essential info is listed here.
 
 ``` shell
-
+im_detect: 1/4088 0.259s 0.000s
+im_detect: 2/4088 0.184s 0.000s
+im_detect: 3/4088 0.160s 0.000s
+...
+im_detect: 4086/4088 0.106s 0.000s
+im_detect: 4087/4088 0.106s 0.000s
+im_detect: 4088/4088 0.106s 0.000s
+Evaluating detections
+Writing person caltech results file
+Saving cached annotations to /home/deeplearning_1/aven_caltech_mini/py-faster-rcnn-caltech-pedestrian/data/caltech/annotations_cache/annots.pkl
+AP for person = 0.4963
+Mean AP = 0.4963
+~~~~~~~~
+Results:
+0.496
+0.496
+~~~~~~~~
 ```
 
 #### 3.3.1 mAP(Mean Average Precision).
@@ -650,7 +674,7 @@ The IoU will then be calculated like this:
 
 For calculating Precision and Recall, as with all machine learning problems, True Positives, False Positives, True Negatives and False Negatives should be identified. IoU is used to get True Positives and False Positives; if the detection(a Positive) is correct(True) or not(False),  take threshold as 0.5 for IoU, if the IoU is > 0.5, it is considered a True Positive, else it is considered a false positive. The IoU = 0.5 is also the PASCAL VOC metric. Since every part of the image where doesn't predict an object is considered a negative, for calculating Recall, just count the Negatives. But measuring “True” negatives is a bit futile. So only measures “False” Negatives which are objects that model missed out. Also, another factor that is taken into consideration is the confidence that the model reports for every detection. Varying the confidence threshold can change whether a predicted box is a Positive or Negative. Basically, all predictions(Box+Class) above the threshold are considered Positive boxes and all below it are Negatives.
 
-For every image, ground truth data tells us the number of actual objects of given classes in that image.By calculating the IoU with the Ground truth for every Positive detection box that the model reports and compare with IoU threshold(like 0.5), the number of correct detections (TP, True Positives) for each class in an image can be calculated. This is used to calculate the Precision for each class  $Precision = {TP\over TP+FP}$ where TP + FP is simply the count of all predictions. And the Recall of the model for cetain class is calculated by formula: $Recall = {TP \over TP+FN}$
+For every image, ground truth data tells us the number of actual objects of given classes in that image.By calculating the IoU with the Ground truth for every Positive detection box that the model reports and compare with IoU threshold(like 0.5), the number of correct detections (TP, True Positives) for each class in an image can be calculated. This is used to calculate the Precision for each class  $Precision = {TP\over TP+FP}$ where TP + FP is simply the count of all predictions. And the Recall of the model for certain class is calculated by formula: $Recall = {TP \over TP+FN}$
 
 ##### 3.3.1.4 Calculating the Mean Average Precision
 
@@ -660,12 +684,18 @@ When testing, compute precision and recall (for each class) accumulatively and d
 
 the area under the precision-recall curve is the final AP for the class. And the mean average  precision is the average mean of all APs.
 
-#### 3.3.2 Final mAP performance and demo samples.
+#### 3.3.2 Final mAP Performance and Demo Samples.
 (*The answer to question 03 is provided here: "Please train and test the Fast R-CNN framework on one of the existing pedestrian detection datasets, and report the final mAP performance that you have achieved.  The dataset could be Caltech, INRIA, KITTI . Please also report some pedestrian detection examples by including the images and bounding boxes."*)
 Final mAP:
 
 ```shell
-
+AP for person = 0.4963
+Mean AP = 0.4963
+~~~~~~~~
+Results:
+0.496
+0.496
+~~~~~~~~
 ```
 
 To demonstrate the train model over sample images on the headless server, the output images can not be displayed but saved . And some  modifications have to be done to the `demo.py` code.
@@ -716,10 +746,51 @@ Demo images:
 |![03](images/03.png)|![04](images/04.png)|
 |![05](images/05.png)|![06](images/06.png)|
 
+### 3.3.2 Result Evaluation.
+
+The result here is much lower than the last implementation on Pascal VOC dataset, which is `mAP = 0.6053`. And it's also lower than other groups using `alt-opt` mechanism, which is around `mAP = 0.57`. Here are some possible reasons (and need to be testified):
+
+* The `alt-opt` mechanism has better control over the training by passing in different learning rates and other factor for different stage.
+* The data pre-processing method is different; in this project, the video sequences are sampled with interval = 30, which takes only one image from every 30 frames. And this has possibly resulted in a much smaller training and testing data size,(which could also be the reason why this `end2end` mechanism is way faster than `alt-opt` training and testing). In the future implementation, the interval can be changed to 1 and the dataset will then be the same with the dataset `alt-opt` group is using, this guess could then be testified.
+
+
 ## 4. Advanced Approach and Improvement Based on Faster R-CNN
 (*The answer to question 04 is provided here: "Propose your own method to further improve the pedestrian detection performance based on the Fast R-CNN framework."*)
 
+### 4.1 Faster R-CNN with Resnet-50.
 This part of work is heavily based on [faster-rcnn-resnet](https://github.com/Eniac-Xie/faster-rcnn-resnet).
 
+This code extends previously implemented Faster R-CNN by adding ResNet implementation and on-line hard example mining.
+The `caffe-fast-rcnn` being used here is different from the one in `py-faster-rcnn`, it uses the `batchnorm` layer from Microsoft's Caffe to reduce the memory usage. 
+
+* Dataset.
+	Take the the same dataset built previously and soft link the `caltech` folder to `data` folder. And also take the `caltech.py` code as data precessing code.
+
+* Network Modification.
+	Go through the same process as in [Modify the Network to Fit Caltech Dataset](322-Modify-the-Network-to-Fit-Caltech-Dataset).
+
+The result from this model is like:
+
+```shell
+AP for person = 0.5414
+Mean AP = 0.5414
+~~~~~~~~
+Results:
+0.541
+0.541
+~~~~~~~~
+```
+
+### 4.2 Region-based Fully Convolution Networks(R-FCN) and Feature Pyramid Networks(FPN).
+
+[publication R-FCN](https://arxiv.org/pdf/1605.06409)
+
+[publication FPN](https://arxiv.org/pdf/1612.03144)
+
+
+
+## 5.Conclusion.
+
+An attempt to re-implement Faster R-CNN is made and documented in [Faster R-CNN Reimplementation and Analysis of Framework and Key Components](2-Faster-R-CNN-Reimplementation-and-Analysis-of-Framework-and-Key-Components). Beyond the official re-implementation over Pascal VOC dataset, this project include the efforts to train the Faster R-CNN on pedestrian detection dataset - Caltech; the dataset pre-processing is well documented in [Prepare the Dataset: Caltech](31-Prepare-the-Dataset-Caltech) and the network modification instruction is in [Model Tuning to Fit Caltech Dataset](32-Model-Tuning-to-Fit-Caltech-Dataset). The final result of the trained Faster R-CNN on Caltech is not as well as expected but the possible reasons and methods towards improvements are proposed in [Result Evaluation](332-Result-Evaluation).
 
 
